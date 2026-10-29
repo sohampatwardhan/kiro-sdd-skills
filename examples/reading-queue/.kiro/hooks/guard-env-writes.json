@@ -1,0 +1,17 @@
+{
+  "version": "v1",
+  "hooks": [
+    {
+      "name": "guard-env-writes",
+      "description": "Block write-tool calls whose input targets a .env file.",
+      "enabled": true,
+      "trigger": "PreToolUse",
+      "matcher": "write",
+      "timeout": 10,
+      "action": {
+        "type": "command",
+        "command": "node scripts/hooks/guard-env-writes.mjs"
+      }
+    }
+  ]
+}

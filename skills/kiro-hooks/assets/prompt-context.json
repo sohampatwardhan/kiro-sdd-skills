@@ -1,0 +1,15 @@
+{
+  "version": "v1",
+  "hooks": [
+    {
+      "name": "spec-context-on-prompt",
+      "description": "Remind the agent to read the active Kiro spec before changing code.",
+      "enabled": true,
+      "trigger": "UserPromptSubmit",
+      "action": {
+        "type": "agent",
+        "prompt": "If the user is implementing a feature that has a folder under .kiro/specs, read that folder's requirements or bugfix file, design.md, and tasks.md before editing. Follow the task they named. Do not invent requirements."
+      }
+    }
+  ]
+}
