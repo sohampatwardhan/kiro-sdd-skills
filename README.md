@@ -75,7 +75,7 @@ docs/
 
 Feature requirements use numbered user stories and EARS lines (`WHEN ... THEN the system SHALL ...`). Tasks are checkboxes. A task that does work ends with `_Requirements: 1.2, 3.1_`. `tasks.md` also contains a Mermaid DAG: phases as subgraphs, parallel groups nested inside them, arrows for depends-on, and `classDef` styles for the critical path, parallel work, and blocked work.
 
-Steering front matter supports `always`, `fileMatch` with `fileMatchPattern`, `manual`, and `auto`. Hooks use schema `v1` and PascalCase triggers such as `PostFileSave` and `UserPromptSubmit`.
+Steering front matter supports `always`, `fileMatch` with `fileMatchPattern`, `manual`, and `auto`. Hooks use schema `v1` and PascalCase triggers such as `PostFileSave` and `UserPromptSubmit`. [`skills/kiro-hooks/assets/kiro-hooks.v1.schema.json`](skills/kiro-hooks/assets/kiro-hooks.v1.schema.json) is a JSON Schema for hook files, written from Kiro's field reference because Kiro does not publish one.
 
 A complete specimen is in [`examples/reading-queue`](examples/reading-queue/README.md): a personal reading queue, plus a small bugfix spec for duplicate titles.
 
@@ -118,6 +118,15 @@ node skills/kiro-mermaid/scripts/validate-mermaid.mjs
 
 Set `CHROME_PATH` if Chrome or Chromium is not on `PATH`. The script needs Node.js and a browser because `mmdc` validates by rendering.
 
+## Check the hooks
+
+[`skills/kiro-hooks/scripts/validate-hooks.mjs`](skills/kiro-hooks/scripts/validate-hooks.mjs) validates hook files against the JSON Schema with [Ajv](https://ajv.js.org/). It also reports duplicate hook names and file-trigger matchers that are not valid regular expressions.
+
+```bash
+npm install --no-save ajv
+node skills/kiro-hooks/scripts/validate-hooks.mjs examples/reading-queue/.kiro/hooks
+```
+
 ## Format notes
 
 Context7 was over its monthly request quota in this environment, so the formats were checked against the published docs on 2026-10-29 rather than through Context7.
@@ -126,7 +135,7 @@ Confirmed from those docs:
 
 - Specs: [kiro.dev/docs/specs](https://kiro.dev/docs/specs/), [feature specs](https://kiro.dev/docs/specs/feature-specs/), [bugfix specs](https://kiro.dev/docs/specs/bugfix-specs/), [best practices](https://kiro.dev/docs/specs/best-practices/)
 - Steering: [kiro.dev/docs/steering](https://kiro.dev/docs/steering/)
-- Hooks: [kiro.dev/docs/hooks](https://kiro.dev/docs/hooks/), [trigger types](https://kiro.dev/docs/hooks/types/), [IDE 1.0 migration](https://kiro.dev/docs/ide/whats-new-v1/hooks/)
+- Hooks: [kiro.dev/docs/hooks](https://kiro.dev/docs/hooks/), [trigger types](https://kiro.dev/docs/hooks/types/), [IDE 1.0 migration](https://kiro.dev/docs/ide/whats-new-v1/hooks/). The bundled JSON Schema is derived from those pages. It is not an official Kiro file.
 - Skills: [kiro.dev/docs/skills](https://kiro.dev/docs/skills/) and [agentskills.io/specification](https://agentskills.io/specification)
 - Diagrams: [Mermaid flowchart](https://mermaid.js.org/syntax/flowchart.html), [sequence](https://mermaid.js.org/syntax/sequenceDiagram.html), [class](https://mermaid.js.org/syntax/classDiagram.html), [ER](https://mermaid.js.org/syntax/entityRelationshipDiagram.html), and mermaid-cli
 
