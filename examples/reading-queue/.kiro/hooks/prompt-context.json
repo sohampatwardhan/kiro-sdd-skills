@@ -1,0 +1,15 @@
+{
+  "version": "v1",
+  "hooks": [
+    {
+      "name": "reading-queue-spec-context",
+      "description": "Ask the agent to read the reading-queue spec before editing.",
+      "enabled": true,
+      "trigger": "UserPromptSubmit",
+      "action": {
+        "type": "agent",
+        "prompt": "If this session is implementing Shelf Club, read .kiro/specs/reading-queue/requirements.md, design.md, and tasks.md before editing. Implement only the numbered task the user named."
+      }
+    }
+  ]
+}

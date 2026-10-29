@@ -1,0 +1,23 @@
+{
+  "version": "v1",
+  "hooks": [
+    {
+      "name": "confirm-spec-check",
+      "description": "After the agent stops, ask before running the spec task checker.",
+      "enabled": true,
+      "trigger": "Stop",
+      "timeout": 30,
+      "action": {
+        "type": "command",
+        "command": "npx markdownlint-cli2 \"**/*.md\""
+      },
+      "confirm": {
+        "question": "Run the markdown check on this session's docs?",
+        "options": [
+          { "id": "run", "label": "Yes, run it", "run": true },
+          { "id": "skip", "label": "Not this time", "run": false }
+        ]
+      }
+    }
+  ]
+}

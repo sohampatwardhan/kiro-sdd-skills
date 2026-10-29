@@ -1,0 +1,25 @@
+{
+  "version": "v1",
+  "hooks": [
+    {
+      "name": "before-reading-queue-task",
+      "description": "Re-read the cited acceptance criteria before a spec task runs.",
+      "enabled": true,
+      "trigger": "PreTaskExec",
+      "action": {
+        "type": "agent",
+        "prompt": "Before this task, open the _Requirements_ ids on the task and the matching criteria in requirements.md or bugfix.md. Do not start a different task."
+      }
+    },
+    {
+      "name": "after-reading-queue-task",
+      "description": "Compare the edit with the task criteria after the task finishes.",
+      "enabled": true,
+      "trigger": "PostTaskExec",
+      "action": {
+        "type": "agent",
+        "prompt": "List each requirement id for the task you just finished and say whether the code satisfies it. Do not check the box for a criterion that is still missing. Stop."
+      }
+    }
+  ]
+}
