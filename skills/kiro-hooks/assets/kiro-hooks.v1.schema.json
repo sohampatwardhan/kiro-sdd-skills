@@ -1,0 +1,152 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://github.com/sohampatwardhan/kiro-sdd-skills/blob/main/skills/kiro-hooks/assets/kiro-hooks.v1.schema.json",
+  "title": "Kiro hook file, version v1",
+  "description": "Unofficial schema for .kiro/hooks/*.json, written from the field reference at https://kiro.dev/docs/hooks/ and the trigger list at https://kiro.dev/docs/hooks/types/. Kiro does not publish its own schema file. Unknown keys are rejected so legacy when/then hooks and typos fail.",
+  "type": "object",
+  "required": ["version", "hooks"],
+  "additionalProperties": false,
+  "properties": {
+    "version": {
+      "description": "Schema version. The only documented value is the string v1.",
+      "const": "v1"
+    },
+    "hooks": {
+      "description": "One or more hook definitions.",
+      "type": "array",
+      "minItems": 1,
+      "items": { "$ref": "#/$defs/hook" }
+    }
+  },
+  "$defs": {
+    "hook": {
+      "type": "object",
+      "required": ["name", "trigger", "action"],
+      "additionalProperties": false,
+      "properties": {
+        "name": {
+          "description": "Human-readable identifier. Keep it unique within the workspace.",
+          "type": "string",
+          "minLength": 1
+        },
+        "description": {
+          "description": "Documentation only.",
+          "type": "string"
+        },
+        "trigger": { "$ref": "#/$defs/trigger" },
+        "matcher": {
+          "description": "Regex against the file path for file triggers. Tool selector, category, wildcard, or regex for tool triggers. Omit to match every event.",
+          "type": "string",
+          "minLength": 1
+        },
+        "action": { "$ref": "#/$defs/action" },
+        "timeout": {
+          "description": "Seconds for command actions. Default 60. 0 disables the timeout. Ignored for agent actions.",
+          "type": "integer",
+          "minimum": 0
+        },
+        "enabled": {
+          "description": "Set false to keep the hook without running it. Default true.",
+          "type": "boolean"
+        },
+        "confirm": { "$ref": "#/$defs/confirm" }
+      },
+      "allOf": [
+        {
+          "if": {
+            "properties": { "confirm": true },
+            "required": ["confirm"]
+          },
+          "then": {
+            "properties": {
+              "trigger": { "const": "Stop" },
+              "action": {
+                "type": "object",
+                "properties": { "type": { "const": "command" } }
+              }
+            }
+          }
+        }
+      ]
+    },
+    "trigger": {
+      "description": "PascalCase event name. SessionEnd and Manual are CLI V3 only. AgentSpawn and agentSpawn are CLI V3 compatibility spellings of SessionStart.",
+      "enum": [
+        "SessionStart",
+        "Stop",
+        "UserPromptSubmit",
+        "PreToolUse",
+        "PostToolUse",
+        "PostFileCreate",
+        "PostFileSave",
+        "PostFileDelete",
+        "PreTaskExec",
+        "PostTaskExec",
+        "SessionEnd",
+        "Manual",
+        "AgentSpawn",
+        "agentSpawn"
+      ]
+    },
+    "action": {
+      "oneOf": [
+        {
+          "title": "Command action",
+          "type": "object",
+          "required": ["type", "command"],
+          "additionalProperties": false,
+          "properties": {
+            "type": { "const": "command" },
+            "command": {
+              "description": "Shell command run in the project root. Receives the event as JSON on stdin. {{filePath}} is substituted for file triggers.",
+              "type": "string",
+              "minLength": 1
+            }
+          }
+        },
+        {
+          "title": "Agent action",
+          "type": "object",
+          "required": ["type", "prompt"],
+          "additionalProperties": false,
+          "properties": {
+            "type": { "const": "agent" },
+            "prompt": {
+              "description": "Prompt injected into the conversation. Appended to the user prompt on UserPromptSubmit.",
+              "type": "string",
+              "minLength": 1
+            }
+          }
+        }
+      ]
+    },
+    "confirm": {
+      "description": "Ask before a Stop command hook runs.",
+      "type": "object",
+      "required": ["question", "options"],
+      "additionalProperties": false,
+      "properties": {
+        "question": { "type": "string", "minLength": 1 },
+        "confirmCommand": {
+          "description": "Optional command whose stdout JSON either skips the prompt with {\"skip\": true} or replaces question and options.",
+          "type": "string",
+          "minLength": 1
+        },
+        "options": {
+          "type": "array",
+          "minItems": 1,
+          "items": {
+            "type": "object",
+            "required": ["id", "label", "run"],
+            "additionalProperties": false,
+            "properties": {
+              "id": { "type": "string", "minLength": 1 },
+              "label": { "type": "string", "minLength": 1 },
+              "run": { "type": "boolean" }
+            }
+          }
+        }
+      }
+    }
+  }
+}

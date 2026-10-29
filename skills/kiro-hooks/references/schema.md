@@ -1,5 +1,7 @@
 # Hook schema
 
+The machine-readable version of this page is `../assets/kiro-hooks.v1.schema.json` (JSON Schema draft 2020-12). It is unofficial. Kiro documents the fields but does not publish a schema file. When this page and the schema disagree, fix the schema to match the Kiro docs.
+
 Current file, from https://kiro.dev/docs/hooks/:
 
 ```json
@@ -33,6 +35,19 @@ Current file, from https://kiro.dev/docs/hooks/:
 | `hooks[].timeout` | no | Seconds for command actions. Default 60. `0` disables. Ignored for agent actions. |
 | `hooks[].enabled` | no | Default true. `false` keeps the file without running it. |
 | `hooks[].confirm` | no | For `Stop` command hooks. See below. |
+
+## Choices the schema makes
+
+These choices fill gaps in the docs. Revisit them if Kiro publishes a schema.
+
+| Rule | Why |
+| --- | --- |
+| No additional properties at any level | The docs call the field list the full schema. Strictness catches legacy `when` / `then` and typos. |
+| `matcher` is a single string | The field table describes one pattern. The IDE editor accepts several tool-name entries, but the JSON shape for several entries is not documented. |
+| `trigger` includes `SessionEnd`, `Manual`, `AgentSpawn`, and `agentSpawn` | The hook types page documents them for CLI V3. New hooks should still prefer the ten main triggers. |
+| `timeout` is an integer | The docs give whole seconds and `0` to disable. |
+| `confirm` only with `Stop` and a command action | The docs describe confirmation only for `Stop` command hooks. |
+| Unique `name` is checked by the script, not the schema | JSON Schema cannot compare values across files. The migration page calls `name` a unique identifier. |
 
 ## Matcher
 
