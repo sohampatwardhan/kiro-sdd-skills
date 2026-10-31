@@ -6,7 +6,7 @@ What the feature does and the shape of the solution in a few paragraphs. Name th
 
 ## Architecture
 
-Components, ownership, and runtime path. A flowchart shows who talks to whom. A sequence diagram shows one successful call and one rejected call. External systems are explicit participants. Deployment detail belongs here only when it changes the design.
+Components, ownership, and runtime path. A flowchart shows who talks to whom. Open that flowchart with the ELK layout front matter from `kiro-mermaid`. A sequence diagram shows one successful call and one rejected call. External systems are explicit participants. Deployment detail belongs here only when it changes the design.
 
 ## Components and Interfaces
 
@@ -14,11 +14,11 @@ For each component: purpose, responsibilities, what it must not do, dependencies
 
 ## Data Models
 
-Entities, fields, relationships, validation, and where the data lives. An `erDiagram` is the source of cardinality. A `stateDiagram-v2` is required when a requirement uses lifecycle words (queued, reading, finished). Document illegal transitions next to the diagram.
+Entities, fields, relationships, validation, and where the data lives. An `erDiagram` is the source of cardinality. A `stateDiagram-v2` is required when a requirement uses lifecycle words (queued, reading, finished). Open that state diagram with the ELK layout front matter from `kiro-mermaid`. Document illegal transitions next to the diagram.
 
 ## Error Handling
 
-Trace inputs, dependencies, state, and partial failure. Map each failure to a caller-visible result and to the state that remains. Prefer the project's existing error type. Include a flowchart from failure to response.
+Trace inputs, dependencies, state, and partial failure. Map each failure to a caller-visible result and to the state that remains. Prefer the project's existing error type. Include a flowchart from failure to response, opened with the ELK layout front matter from `kiro-mermaid`.
 
 ## Testing Strategy
 

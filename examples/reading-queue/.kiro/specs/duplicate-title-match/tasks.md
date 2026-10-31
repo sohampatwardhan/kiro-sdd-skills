@@ -25,6 +25,10 @@
 An arrow means depends-on. Primary critical path: 1, 2, 3.2. Tasks 3.1 and 3.3 run in parallel with 3.2 after the fix.
 
 ```mermaid
+---
+config:
+  layout: elk
+---
 flowchart TB
   subgraph phase1 [Phase 1 Reproduce]
     t1["1. Add a failing test for a lookalike open title"]

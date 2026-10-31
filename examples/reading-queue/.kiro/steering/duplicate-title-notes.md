@@ -11,6 +11,10 @@ Load this file with `#duplicate-title-notes` when investigating a second copy of
 Compare titles only after trim and case fold, and only against queued and reading entries. A finished book may be queued again. Punctuation is not stripped.
 
 ```mermaid
+---
+config:
+  layout: elk
+---
 flowchart TB
   raw["Submitted title"] --> norm["Trim and case fold"]
   norm --> open{"Same key on an open entry"}

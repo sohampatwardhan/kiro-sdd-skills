@@ -3,6 +3,10 @@
 A Shelf Club reading queue, written as Kiro would store it. This folder is a specimen for the skills in this repository. It is not the spec for the skills themselves.
 
 ```mermaid
+---
+config:
+  layout: elk
+---
 flowchart TB
   subgraph specs [Specs]
     feature["reading-queue"]

@@ -23,6 +23,10 @@ Live reference:
 ```
 
 ```mermaid
+---
+config:
+  layout: elk
+---
 flowchart TB
   client["Client"] --> api["API framework"]
   api --> db["Database"]

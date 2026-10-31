@@ -8,6 +8,10 @@
 Members asked for a queue they could reorder, and also for a clear answer to "what am I reading now". Allowing several reading entries makes notes, reorder, and the queue view ambiguous. Requirement 3.3 in the reading-queue spec forbids a second active book.
 
 ```mermaid
+---
+config:
+  layout: elk
+---
 flowchart LR
   need["One current book"] --> multi["Allow many reading entries"]
   need --> single["Allow one reading entry"]

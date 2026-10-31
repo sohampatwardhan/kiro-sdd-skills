@@ -25,6 +25,10 @@
 Arrows mean depends-on. A task waits until every incoming source is checked.
 
 ```mermaid
+---
+config:
+  layout: elk
+---
 flowchart TB
   subgraph phase1 [Phase 1 Foundation]
     t1["1. Stand-alone coding task"]

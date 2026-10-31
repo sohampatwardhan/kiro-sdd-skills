@@ -13,6 +13,10 @@ Include this file on demand with `#runbook` or the `/runbook` slash command. It 
 3. [Verify]
 
 ```mermaid
+---
+config:
+  layout: elk
+---
 flowchart LR
   check["Check"] --> ship["Ship"]
   ship --> verify["Verify"]

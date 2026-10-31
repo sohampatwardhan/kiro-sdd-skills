@@ -17,6 +17,10 @@ inclusion: always
 [The outcomes that should win when a trade-off appears.]
 
 ```mermaid
+---
+config:
+  layout: elk
+---
 flowchart LR
   user["Primary user"] --> job["Job to be done"]
   job --> outcome["Outcome"]

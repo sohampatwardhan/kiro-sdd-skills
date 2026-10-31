@@ -5,6 +5,10 @@
 [What this feature does, the approach, and why that approach won. Link requirements or bugfix criteria the design covers.]
 
 ```mermaid
+---
+config:
+  layout: elk
+---
 flowchart LR
   caller["Caller"] --> edge["Entry point"]
   edge --> core["Core rule"]
@@ -16,6 +20,10 @@ flowchart LR
 [Components and the runtime path.]
 
 ```mermaid
+---
+config:
+  layout: elk
+---
 flowchart TB
   subgraph clients [Clients]
     app["Client"]
@@ -85,6 +93,10 @@ erDiagram
 ```
 
 ```mermaid
+---
+config:
+  layout: elk
+---
 stateDiagram-v2
   [*] --> draft
   draft --> active : accept
@@ -99,6 +111,10 @@ stateDiagram-v2
 | [invalid input] | [error] | [unchanged] |
 
 ```mermaid
+---
+config:
+  layout: elk
+---
 flowchart TB
   fail["Failure"] --> kind{"Kind"}
   kind -->|"validation"| client["Client error"]

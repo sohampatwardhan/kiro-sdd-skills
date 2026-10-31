@@ -1,6 +1,6 @@
 ---
 name: kiro-mermaid
-description: "Keep Mermaid diagrams valid in Kiro specs, steering files, and project docs. Use when adding or editing flowcharts, nested subgraphs, erDiagram, classDiagram, sequenceDiagram, stateDiagram, or classDef styling, and when validating fenced mermaid blocks with mermaid-cli mmdc. Use alongside the Kiro spec and steering skills."
+description: "Keep Mermaid diagrams valid in Kiro specs, steering files, and project docs. Use when adding or editing flowcharts, nested subgraphs, erDiagram, classDiagram, sequenceDiagram, stateDiagram, or classDef styling, and when validating fenced mermaid blocks with mermaid-cli mmdc. Flowcharts and state diagrams set layout: elk in YAML front matter. Use alongside the Kiro spec and steering skills."
 license: MIT
 compatibility: "Validation script requires Node.js and @mermaid-js/mermaid-cli. Rendering needs Chrome or Chromium. Writing diagrams needs neither."
 metadata:
@@ -10,7 +10,7 @@ metadata:
 
 # Mermaid for Kiro docs
 
-Every Markdown file this skill set produces includes Mermaid in fenced blocks that GitHub can render. Syntax notes are in `references/syntax.md`. Official syntax: https://mermaid.js.org/ (flowchart, sequence, class, ER, and state pages).
+Every Markdown file this skill set produces includes Mermaid in fenced blocks that GitHub can render. Syntax notes are in `references/syntax.md`. Official syntax: https://mermaid.js.org/ (flowchart, state, layouts, sequence, class, and ER pages).
 
 ## Fence
 
@@ -18,12 +18,31 @@ Put the fence at column 0. The info string is `mermaid` and nothing else.
 
 ````markdown
 ```mermaid
+---
+config:
+  layout: elk
+---
 flowchart LR
   start["Start"] --> done["Done"]
 ```
 ````
 
 Do not indent the fence. Do not use a `mermaid` fence for a sample you know is invalid. Show invalid samples in a `text` fence.
+
+## Layout
+
+Every `flowchart`, `graph`, `stateDiagram`, and `stateDiagram-v2` starts with the YAML front matter in the sample above:
+
+```yaml
+---
+config:
+  layout: elk
+---
+```
+
+Mermaid documents `config.layout` for flowcharts (including the older `graph` keyword) and for state diagrams, so this one block covers both. The diagram keyword stays after the front matter. The task DAG is a flowchart, including when it uses nested subgraphs, so it gets the same front matter.
+
+If the fence already has front matter, add `layout: elk` under its `config` map. Do not open a second `---` block. If `config.layout` is already `elk`, leave it. Sequence, class, ER, and other diagram types do not get this key. Do not switch a flowchart to the legacy `flowchart-elk` keyword, and do not set `defaultRenderer`.
 
 ## Which diagram
 
@@ -58,6 +77,10 @@ Break these and GitHub shows an error instead of a picture.
 Define classes once, then assign nodes:
 
 ```mermaid
+---
+config:
+  layout: elk
+---
 flowchart TB
   ready["1. Ready task"] --> later["2. Later task"]
   classDef critical fill:#fde68a,stroke:#b45309,color:#1c1917
@@ -77,7 +100,7 @@ From the repo root, when Node.js is available:
 node skills/kiro-mermaid/scripts/validate-mermaid.mjs
 ```
 
-The script extracts every `mermaid` fence under the paths you pass (default: the repo), writes temporary `.mmd` files, and renders each with `npx @mermaid-js/mermaid-cli` (`mmdc`). It uses Chrome or Chromium when `CHROME_PATH` is set or an executable is on `PATH`. Exit 0 means every block rendered. Exit 1 prints the file, line, and parser message.
+The script extracts every `mermaid` fence under the paths you pass (default: the repo), writes temporary `.mmd` files, and renders each with `npx @mermaid-js/mermaid-cli` (`mmdc`). It uses Chrome or Chromium when `CHROME_PATH` is set or an executable is on `PATH`. It also rejects a `flowchart`, `graph`, `stateDiagram`, or `stateDiagram-v2` whose front matter does not set `config.layout` to `elk`. Sequence, class, ER, and other types are not checked for that key. Exit 0 means every targeted diagram sets ELK and every block rendered. Exit 1 prints the file, line, and parser message.
 
 `mmdc` validates by rendering. Do not point it at a Markdown file in place. That mode rewrites the file and replaces fences with images. The script renders only temporary copies.
 

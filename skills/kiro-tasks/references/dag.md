@@ -5,6 +5,10 @@ The diagram lives in `tasks.md` under a `## Task graph` heading, after the check
 ## Structure
 
 ```mermaid
+---
+config:
+  layout: elk
+---
 flowchart TB
   subgraph phase1 [Phase 1 Foundation]
     t1["1. Write types"]
@@ -32,6 +36,7 @@ flowchart TB
   class legBlock blocked
 ```
 
+- Open with the ELK layout front matter from `kiro-mermaid` (`config.layout: elk`), then `flowchart TB` or `flowchart LR`. Nested subgraphs stay inside that flowchart. Merge into existing front matter instead of adding a second block.
 - Direction `TB` or `LR`. Prefer `TB` when there are several phases.
 - Subgraph ids are single tokens (`phase1`, `parallel2`, `legend`). Put the human title in brackets: `subgraph phase1 [Phase 1 Foundation]`.
 - Nest a parallel group inside its phase.

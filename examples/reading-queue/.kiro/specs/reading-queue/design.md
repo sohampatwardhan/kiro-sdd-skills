@@ -11,6 +11,10 @@ The design covers requirements 1.1 through 6.3. Duplicate detection compares tit
 Rejected alternatives: storing the queue as a single JSON array on the member (reorder and status changes fight each other), and allowing multiple reading entries (forbidden by ADR 0001).
 
 ```mermaid
+---
+config:
+  layout: elk
+---
 flowchart LR
   member["Member"] --> api["HTTP API"]
   api --> queue["Queue service"]
@@ -22,6 +26,10 @@ flowchart LR
 One process handles the request. The handler does not update rows itself.
 
 ```mermaid
+---
+config:
+  layout: elk
+---
 flowchart TB
   subgraph edge [Edge]
     api["Queue API"]
@@ -193,6 +201,10 @@ erDiagram
 A book row is reused when the normalized title and author already exist. The open-title rule is per member, not global. Two members may queue the same title.
 
 ```mermaid
+---
+config:
+  layout: elk
+---
 stateDiagram-v2
   [*] --> queued
   queued --> reading : start
@@ -225,6 +237,10 @@ Position is an integer among queued entries only. The reading entry is selected 
 | Store unavailable | none | 503 | unchanged |
 
 ```mermaid
+---
+config:
+  layout: elk
+---
 flowchart TB
   failure["Service failure"] --> kind{"Kind"}
   kind -->|"not a member"| denied["401"]
@@ -252,6 +268,10 @@ Property: for any member and any sequence of successful starts, the number of re
 Property: a rejected call returns the same rows the store had before the call. Validates: Requirements 1.3, 1.4, 2.2, 3.3, 5.3.
 
 ```mermaid
+---
+config:
+  layout: elk
+---
 flowchart TB
   unit["Unit tests for rules"] --> integration["HTTP integration tests"]
   integration --> property["One-active-book property"]

@@ -3,6 +3,10 @@
 Shelf Club is a single-user-per-request reading log. This example records the spec for a personal reading queue. The application code is not in this folder. The design in `.kiro/specs/reading-queue/design.md` is the source for that feature. This overview is the stable picture that feature design is not allowed to contradict.
 
 ```mermaid
+---
+config:
+  layout: elk
+---
 flowchart TB
   subgraph actors [Actors]
     member["Member"]
@@ -30,6 +34,10 @@ flowchart TB
 The API process is the only writer. There is no background worker in this version.
 
 ```mermaid
+---
+config:
+  layout: elk
+---
 flowchart LR
   client["Client"] --> api["HTTP API"]
   api --> rules["Queue rules"]

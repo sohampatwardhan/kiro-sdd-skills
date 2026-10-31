@@ -5,6 +5,10 @@ Agent skills that write [Kiro](https://kiro.dev/docs/specs/) spec-driven develop
 The skills follow the [Agent Skills](https://agentskills.io/specification) layout. Each skill is a folder with a `SKILL.md` file. The front matter has `name` and `description`. Templates live in `assets/`, and longer notes live in `references/`.
 
 ```mermaid
+---
+config:
+  layout: elk
+---
 flowchart TB
   subgraph orch [Orchestrator]
     sdd["kiro-sdd"]
@@ -47,6 +51,10 @@ Copy every folder you want. `kiro-sdd` points at the others, so install the set 
 ## What the skills write
 
 ```mermaid
+---
+config:
+  layout: elk
+---
 flowchart LR
   subgraph spec [One feature folder]
     requirements["requirements.md or bugfix.md"]
@@ -137,7 +145,7 @@ Confirmed from those docs:
 - Steering: [kiro.dev/docs/steering](https://kiro.dev/docs/steering/)
 - Hooks: [kiro.dev/docs/hooks](https://kiro.dev/docs/hooks/), [trigger types](https://kiro.dev/docs/hooks/types/), [IDE 1.0 migration](https://kiro.dev/docs/ide/whats-new-v1/hooks/). The bundled JSON Schema is derived from those pages. It is not an official Kiro file.
 - Skills: [kiro.dev/docs/skills](https://kiro.dev/docs/skills/) and [agentskills.io/specification](https://agentskills.io/specification)
-- Diagrams: [Mermaid flowchart](https://mermaid.js.org/syntax/flowchart.html), [sequence](https://mermaid.js.org/syntax/sequenceDiagram.html), [class](https://mermaid.js.org/syntax/classDiagram.html), [ER](https://mermaid.js.org/syntax/entityRelationshipDiagram.html), and mermaid-cli
+- Diagrams: [Mermaid flowchart](https://mermaid.js.org/syntax/flowchart.html), [state](https://mermaid.js.org/syntax/stateDiagram.html), [layouts](https://mermaid.js.org/config/layouts.html), [sequence](https://mermaid.js.org/syntax/sequenceDiagram.html), [class](https://mermaid.js.org/syntax/classDiagram.html), [ER](https://mermaid.js.org/syntax/entityRelationshipDiagram.html), and mermaid-cli. Every flowchart and state diagram sets `config.layout` to `elk` in YAML front matter. Other diagram types do not. Layout was checked against the layouts page on 2026-10-31.
 
 A few details are called out in the skills because the public pages do not settle them. The task DAG is documentation these skills add. Kiro infers dependencies when it runs tasks. It does not parse the diagram. New hooks are `.kiro/hooks/*.json`, not `.kiro.hook`.
 

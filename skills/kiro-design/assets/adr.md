@@ -8,6 +8,10 @@
 [What force makes this decision necessary. Link the spec or requirement ids.]
 
 ```mermaid
+---
+config:
+  layout: elk
+---
 flowchart LR
   force["Constraint"] --> optionA["Option A"]
   force --> optionB["Option B"]

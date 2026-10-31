@@ -7,6 +7,10 @@ Root cause: `QueueService.append` compares `book.title` to the submitted string 
 No schema change. No new route. The reading-queue design already names `TitleKey`. This bugfix only makes append use it.
 
 ```mermaid
+---
+config:
+  layout: elk
+---
 flowchart LR
   input["Submitted title"] --> key["TitleKey.normalize"]
   key --> open["Open entries"]
@@ -40,6 +44,10 @@ sequenceDiagram
 Reorder never calls `TitleKey`. That keeps requirement 3.3 of this bugfix true.
 
 ```mermaid
+---
+config:
+  layout: elk
+---
 flowchart TB
   subgraph unchanged [Unchanged callers]
     reorder["reorder"]
@@ -82,6 +90,10 @@ erDiagram
 ```
 
 ```mermaid
+---
+config:
+  layout: elk
+---
 stateDiagram-v2
   [*] --> queued
   queued --> reading : start
@@ -100,6 +112,10 @@ Finished and abandoned rows stay out of the duplicate set, so the same title may
 | Title is new after normalize | existing 201 path | one new row |
 
 ```mermaid
+---
+config:
+  layout: elk
+---
 flowchart TB
   match{"Normalized title open"} -->|"yes"| conflict["409 and no insert"]
   match -->|"no"| append["Existing append path"]
@@ -114,6 +130,10 @@ flowchart TB
 - Property: reorder of queued ids does not change because of normalization. Validates: Requirement 3.3.
 
 ```mermaid
+---
+config:
+  layout: elk
+---
 flowchart LR
   red["Failing test for the bug"] --> fix["Use TitleKey in append"]
   fix --> keep["Tests for unchanged append and reorder"]

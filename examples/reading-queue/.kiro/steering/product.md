@@ -19,6 +19,10 @@ Members who already have an account. This example does not add invitations, club
 - Specs stay in `.kiro/specs/` and match this product boundary.
 
 ```mermaid
+---
+config:
+  layout: elk
+---
 flowchart LR
   member["Member"] --> queue["Reading queue"]
   queue --> now["One active book"]

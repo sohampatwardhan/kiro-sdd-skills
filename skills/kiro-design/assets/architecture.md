@@ -3,6 +3,10 @@
 [One paragraph on what this system is and who it serves. This file is project context. Feature designs link here instead of repeating it.]
 
 ```mermaid
+---
+config:
+  layout: elk
+---
 flowchart TB
   subgraph actors [Actors]
     user["User"]
@@ -24,6 +28,10 @@ flowchart TB
 [Short description of each runtime piece and what it owns.]
 
 ```mermaid
+---
+config:
+  layout: elk
+---
 flowchart LR
   client["Client"] --> api["API"]
   api --> worker["Worker"]

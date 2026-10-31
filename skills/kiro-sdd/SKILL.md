@@ -19,7 +19,7 @@ Use this skill to drive a Kiro-compatible spec from idea to an approved task lis
 | Implementation plan | `kiro-tasks` | `tasks.md` with a Mermaid task DAG |
 | Project context | `kiro-steering` | `.kiro/steering/*.md` |
 | Agent hooks | `kiro-hooks` | `.kiro/hooks/*.json` |
-| Diagrams in any of the above | `kiro-mermaid` | fenced `mermaid` blocks that parse with `mmdc` |
+| Diagrams in any of the above | `kiro-mermaid` | fenced `mermaid` blocks that parse with `mmdc`; flowcharts and state diagrams set `layout: elk` |
 
 When these skills are installed side by side, the sibling folders sit next to this one (`../kiro-requirements/SKILL.md`, and the same for the others).
 
@@ -39,6 +39,10 @@ Do not switch workflow inside an existing spec folder. A different workflow is a
 Feature folder names are kebab-case slugs (`reading-queue`). Create the folder on the first write. Keep the slug stable.
 
 ```mermaid
+---
+config:
+  layout: elk
+---
 flowchart TB
   idea["Feature idea or bug report"] --> choose{"Workflow"}
   choose -->|"Requirements-First"| req["kiro-requirements"]

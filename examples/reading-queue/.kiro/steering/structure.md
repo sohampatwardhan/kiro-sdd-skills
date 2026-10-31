@@ -7,6 +7,10 @@ inclusion: always
 This example is a spec specimen. Application source is added only when someone executes the tasks. Until then the tree is documents.
 
 ```mermaid
+---
+config:
+  layout: elk
+---
 flowchart TB
   subgraph root [reading-queue example]
     kiro[".kiro"]

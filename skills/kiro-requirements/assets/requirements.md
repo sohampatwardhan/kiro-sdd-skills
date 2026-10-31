@@ -5,6 +5,10 @@
 [Two or three sentences. Who is affected, what they can do after this feature, and what is explicitly out of scope.]
 
 ```mermaid
+---
+config:
+  layout: elk
+---
 flowchart LR
   actor["Actor"] --> main["Primary flow"]
   main --> alt["Alternate or error flow"]
@@ -23,6 +27,10 @@ flowchart LR
 2. IF [precondition is false] THEN the system SHALL [reject or leave state unchanged]
 
 ```mermaid
+---
+config:
+  layout: elk
+---
 flowchart TB
   event["Trigger for requirement 1"] --> check{"Guard"}
   check -->|"pass"| ok["Criterion 1.1"]

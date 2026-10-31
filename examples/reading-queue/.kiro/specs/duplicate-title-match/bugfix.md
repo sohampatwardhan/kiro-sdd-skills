@@ -5,6 +5,10 @@
 Appending a book compares the raw title. `Dune` and `dune ` both become open entries for the same member. The fix is to compare titles after trim and case fold. Author matching, reorder, and the one-active-book rule stay as they are. No new queue status is introduced.
 
 ```mermaid
+---
+config:
+  layout: elk
+---
 flowchart LR
   submit["Submit a lookalike title"] --> now["Second queued entry is stored"]
   submit --> want["Request rejected"]
@@ -22,6 +26,10 @@ flowchart LR
 1. WHEN a member submits a title that matches an open entry except for case or surrounding whitespace THEN the system stores a second queued entry
 
 ```mermaid
+---
+config:
+  layout: elk
+---
 flowchart TB
   existing["Open entry titled Dune"] --> again["Submit dune with a trailing space"]
   again --> stored["A second queued entry is stored"]
@@ -50,6 +58,10 @@ flowchart TB
 3. WHEN a member reorders queued entries THEN the system SHALL CONTINUE TO persist that order without consulting title normalization
 
 ```mermaid
+---
+config:
+  layout: elk
+---
 stateDiagram-v2
   [*] --> open
   open --> open : lookalike title rejected

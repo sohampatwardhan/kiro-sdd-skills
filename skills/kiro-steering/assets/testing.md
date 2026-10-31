@@ -16,6 +16,10 @@ description: "Test layout, assertions, and what must be covered. Use when adding
 - [What a feature task's tests must cite]
 
 ```mermaid
+---
+config:
+  layout: elk
+---
 flowchart TB
   unit["Unit tests"] --> integration["Integration tests"]
   integration --> ready["Ready to merge"]

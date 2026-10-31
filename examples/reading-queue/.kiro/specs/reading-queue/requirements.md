@@ -5,6 +5,10 @@
 Shelf Club members keep a personal reading queue. A member adds books, reorders books they have not started, and reads one book at a time. Notes attach only to the book that is currently being read. This spec does not cover social sharing, recommendations, or importing a catalog from another service.
 
 ```mermaid
+---
+config:
+  layout: elk
+---
 flowchart LR
   member["Member"] --> add["Add a book"]
   add --> view["View the queue"]
@@ -15,6 +19,10 @@ flowchart LR
 ```
 
 ```mermaid
+---
+config:
+  layout: elk
+---
 stateDiagram-v2
   [*] --> queued
   queued --> reading : start
@@ -37,6 +45,10 @@ stateDiagram-v2
 5. IF the caller is not a member THEN the system SHALL reject the request and SHALL NOT create a queue entry
 
 ```mermaid
+---
+config:
+  layout: elk
+---
 flowchart TB
   submit["Submit title and author"] --> member{"Caller is a member"}
   member -->|"no"| rejectCaller["Reject and do not create an entry 1.5"]

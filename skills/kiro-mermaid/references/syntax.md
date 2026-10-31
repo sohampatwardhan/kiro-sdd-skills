@@ -1,17 +1,38 @@
 # Mermaid syntax used by these skills
 
-Sources: the flowchart, sequence, class, entity-relationship, and state pages on https://mermaid.js.org/, fetched 2026-10-29. Prefer the forms below. They render on GitHub.
+Sources: the flowchart, state, layout, sequence, class, and entity-relationship pages on https://mermaid.js.org/. Layout was checked on 2026-10-31. The other syntax was checked on 2026-10-29. Prefer the forms below. They render on GitHub.
+
+## Layout
+
+Flowcharts and state diagrams select the ELK layout engine in YAML front matter. [Layouts](https://mermaid.js.org/config/layouts.html) documents `config.layout` for `flowchart` and the older `graph` keyword. The state diagram page uses the same key for `stateDiagram-v2`. One block covers `flowchart`, `graph`, `stateDiagram`, and `stateDiagram-v2`:
+
+```yaml
+---
+config:
+  layout: elk
+---
+```
+
+Put that block first, then the diagram keyword. When the diagram already has front matter, add `layout: elk` under the existing `config` map. Do not open a second `---` block. Leave the key alone when it is already `elk`.
+
+This is the form that applies to both diagram families. The legacy `flowchart-elk` keyword does not cover state diagrams. `defaultRenderer` was removed in Mermaid 12. Do not use either.
+
+Sequence, class, ER, and every other diagram type omit this layout key.
 
 ## Flowchart
 
 ```mermaid
+---
+config:
+  layout: elk
+---
 flowchart TB
   subgraph phase [Phase]
     a["Quoted label"] --> b["Another label"]
   end
 ```
 
-- First line is `flowchart TB` or `flowchart LR`. `graph` is the older keyword. Use `flowchart`.
+- Open with the ELK front matter above, then `flowchart TB` or `flowchart LR`. `graph` is the older keyword. Use `flowchart`. Nested subgraphs do not change the front matter.
 - Shapes this set uses: `id["rectangle"]`, `id{"diamond"}`, `id(["stadium"])`.
 - Edges: `-->` for depends-on or sequence. Label an edge only when the word is not obvious, and quote the label: `-->|"yes"|`.
 - Subgraph direction is ignored when any node inside links outside the subgraph. Set direction on the outer flowchart only.
@@ -72,6 +93,10 @@ Class names are letters, digits, underscores, and dashes. Keep method lists shor
 ## State
 
 ```mermaid
+---
+config:
+  layout: elk
+---
 stateDiagram-v2
   [*] --> idle
   idle --> running : start
@@ -79,7 +104,8 @@ stateDiagram-v2
   running --> [*]
 ```
 
-State ids are single tokens. Do not name a state `end`.
+- Open with the same ELK front matter, then `stateDiagram-v2`. `stateDiagram` is the older keyword. Use `stateDiagram-v2`.
+- State ids are single tokens. Do not name a state `end`.
 
 ## Words that break parsers
 

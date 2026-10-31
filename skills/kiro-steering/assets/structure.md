@@ -9,6 +9,10 @@ inclusion: always
 [Top-level directories and what belongs in each.]
 
 ```mermaid
+---
+config:
+  layout: elk
+---
 flowchart TB
   subgraph root [Repository]
     src["src"]

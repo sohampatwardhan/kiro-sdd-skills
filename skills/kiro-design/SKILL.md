@@ -45,7 +45,7 @@ The design is the visual spec. Include all of these when the feature has the mat
 | `stateDiagram-v2` | Data Models | Lifecycle the requirements name |
 | Flowchart | Error Handling | How failures map to responses |
 
-Read the `kiro-mermaid` skill before inserting fences. Quote labels that contain parentheses, colons, or slashes.
+Read the `kiro-mermaid` skill before inserting fences. Quote labels that contain parentheses, colons, or slashes. Flowcharts and `stateDiagram-v2` open with the ELK layout front matter (`config.layout: elk`). Sequence, class, and ER diagrams do not.
 
 ## Project docs the spec cites
 

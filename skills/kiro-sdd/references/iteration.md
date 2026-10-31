@@ -27,7 +27,7 @@ When asked to sync:
 2. Add tasks for new criterion ids. Use new task numbers.
 3. If the user asks which tasks are already done, inspect the code and check only the tasks whose behavior is present. Use `- [x]`. Do not check a parent while a child is open.
 4. Leave optional tasks optional.
-5. Update the Mermaid DAG in the same edit so numbers, edges, and classes still match the list. A diagram that disagrees with the checkboxes is a failed sync.
+5. Update the Mermaid DAG in the same edit so numbers, edges, and classes still match the list. Keep the ELK layout front matter on that flowchart. A diagram that disagrees with the checkboxes is a failed sync.
 
 ## Partial edits
 

@@ -4,6 +4,8 @@
  *
  * mmdc validates by rendering. This script never rewrites the source
  * Markdown. It writes temporary .mmd files and asks mmdc for SVG output.
+ * Flowcharts and state diagrams must set config.layout to elk. Other
+ * diagram types are not checked for that key.
  *
  * Usage:
  *   node skills/kiro-mermaid/scripts/validate-mermaid.mjs [path...]
@@ -96,6 +98,65 @@ function renderArgs(input, output, configPath) {
   return ["-i", input, "-o", output, "-p", configPath, "-b", "white", "-q"];
 }
 
+const TARGET_DIAGRAM = /^(?:flowchart|graph|stateDiagram-v2|stateDiagram)\b/;
+
+function layoutValue(raw) {
+  const match = raw.trim().match(/^["']?([A-Za-z0-9._-]+)["']?/);
+  return match ? match[1] : raw.trim();
+}
+
+function frontHasElk(front) {
+  for (let i = 0; i < front.length; i++) {
+    const line = front[i];
+    const inline = line.match(/^config:\s*\{(.*)\}\s*(?:#.*)?$/);
+    if (inline) {
+      const found = inline[1].match(/(?:^|[,{]\s*)layout\s*:\s*([^,}]+)/);
+      return found ? layoutValue(found[1]) === "elk" : false;
+    }
+    if (/^config:\s*(?:#.*)?$/.test(line)) {
+      for (let j = i + 1; j < front.length; j++) {
+        const inner = front[j];
+        if (inner.trim() === "") continue;
+        if (!/^\s/.test(inner)) break;
+        const layout = inner.match(/^\s+layout\s*:\s*(.+)$/);
+        if (layout) return layoutValue(layout[1]) === "elk";
+      }
+      return false;
+    }
+  }
+  return false;
+}
+
+function elkStatus(code) {
+  const lines = code.replace(/\n$/, "").split("\n");
+  let front = null;
+  let index = 0;
+  if (lines[0] && lines[0].trim() === "---") {
+    let end = -1;
+    for (let j = 1; j < lines.length; j++) {
+      if (lines[j].trim() === "---") {
+        end = j;
+        break;
+      }
+    }
+    if (end !== -1) {
+      front = lines.slice(1, end);
+      index = end + 1;
+    }
+  }
+  while (index < lines.length) {
+    const stripped = lines[index].trim();
+    if (stripped === "" || stripped.startsWith("%%")) {
+      index += 1;
+      continue;
+    }
+    break;
+  }
+  const kind = (lines[index] || "").trim();
+  if (!TARGET_DIAGRAM.test(kind)) return "skip";
+  return front && frontHasElk(front) ? "ok" : "missing";
+}
+
 function main() {
   const roots = process.argv.slice(2);
   const start = roots.length ? roots.map((p) => resolve(p)) : [repoRoot];
@@ -132,6 +193,12 @@ function main() {
     const output = join(tmp, `diagram-${index}.svg`);
     writeFileSync(input, block.code);
     const rel = relative(repoRoot, block.file);
+    if (elkStatus(block.code) === "missing") {
+      failed += 1;
+      console.error(`FAIL  ${rel}:${block.startLine} #${index + 1}`);
+      console.error("flowchart or state diagram is missing config.layout: elk");
+      return;
+    }
     const args = renderArgs(input, output, configPath);
     const result = process.env.MMDC_BIN
       ? spawnSync(process.env.MMDC_BIN, args, { encoding: "utf8" })

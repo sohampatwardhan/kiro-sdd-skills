@@ -5,6 +5,10 @@
 [What breaks, who hits it, and the smallest statement of the fix. List code or behavior that must not be modified.]
 
 ```mermaid
+---
+config:
+  layout: elk
+---
 flowchart LR
   trigger["Reproduction trigger"] --> now["Current behavior"]
   trigger --> want["Expected behavior"]
@@ -43,6 +47,10 @@ flowchart LR
 2. WHEN [neighboring case] THEN the system SHALL CONTINUE TO [existing behavior]
 
 ```mermaid
+---
+config:
+  layout: elk
+---
 stateDiagram-v2
   [*] --> broken
   broken --> fixed: correction

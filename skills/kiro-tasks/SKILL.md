@@ -50,6 +50,7 @@ Kiro infers a dependency graph when it runs all tasks, then executes independent
 
 Put the graph in a Mermaid flowchart in `tasks.md`:
 
+- Open with the ELK layout front matter from `kiro-mermaid` (`config.layout: elk`), including when the diagram uses nested subgraphs. Merge it into existing front matter. Do not add a second block.
 - Nested subgraphs: phase, then parallel group inside the phase.
 - One node per checkbox that does work. Use the same number as the list (`2.1`, not a nickname).
 - An arrow means the target depends on the source. The source must be checked before the target starts.

@@ -70,6 +70,10 @@
 An arrow means depends-on. The target stays unchecked until every source is checked. Primary critical path: 1, 2.1, 3.1, 3.3, 5.2, 6.3. That path delivers the reading transition through the API. Task 7 is optional, so a required run does not include it.
 
 ```mermaid
+---
+config:
+  layout: elk
+---
 flowchart TB
   subgraph phase1 [Phase 1 Foundation]
     t1["1. Define reading-queue types and the SQLite schema"]

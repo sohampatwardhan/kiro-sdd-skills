@@ -25,6 +25,10 @@ The stable picture and the one-active-book decision:
 #[[file:docs/adr/0001-one-active-book.md:1-16]]
 
 ```mermaid
+---
+config:
+  layout: elk
+---
 flowchart TB
   api["HTTP handlers"] --> service["Queue service"]
   service --> sqlite["SQLite store"]

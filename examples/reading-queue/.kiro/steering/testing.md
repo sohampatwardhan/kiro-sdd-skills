@@ -16,6 +16,10 @@ Unit tests construct `QueueService` with an in-memory store. Integration tests s
 - A bugfix includes a test that fails before the fix, a test that passes after, and a test that neighboring behavior did not move.
 
 ```mermaid
+---
+config:
+  layout: elk
+---
 flowchart TB
   unit["In-memory unit tests"] --> http["HTTP integration tests"]
   unit --> property["Optional property tests"]

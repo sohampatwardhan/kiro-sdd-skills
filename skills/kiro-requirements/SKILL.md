@@ -64,7 +64,7 @@ Still use `### Requirement N` and numbered criteria so `tasks.md` can cite `1.1`
 
 ## Diagrams
 
-Every requirements or bugfix document includes Mermaid:
+Every requirements or bugfix document includes Mermaid. Flowcharts and any `stateDiagram-v2` open with the ELK layout front matter from `kiro-mermaid` (`config.layout: elk`):
 
 - a flowchart of the user or defect flow
 - a flowchart of decisions between acceptance criteria

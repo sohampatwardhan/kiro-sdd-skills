@@ -69,7 +69,7 @@ Use a range only after you have read the file and confirmed those lines exist. I
 
 ## Diagrams
 
-Each steering file includes at least one Mermaid flowchart that shows the rule the prose states (user journey, stack, directory ownership, request path, or test layers). Follow `kiro-mermaid`.
+Each steering file includes at least one Mermaid flowchart that shows the rule the prose states (user journey, stack, directory ownership, request path, or test layers). Open that flowchart with the ELK layout front matter from `kiro-mermaid`. Follow `kiro-mermaid`.
 
 ## Maintaining steering
 
