@@ -22,12 +22,17 @@ flowchart TB
     steering["kiro-steering"]
     hooks["kiro-hooks"]
   end
+  subgraph delivery [GitHub delivery]
+    pipeline["kiro-github-pipeline"]
+  end
   diagrams["kiro-mermaid"]
   sdd --> req
   sdd --> design
   sdd --> tasks
   sdd --> steering
   sdd --> hooks
+  sdd -->|"repo on GitHub"| pipeline
+  pipeline --> tasks
   req --> diagrams
   design --> diagrams
   tasks --> diagrams
@@ -38,13 +43,14 @@ flowchart TB
 
 | Skill | Use it when |
 | --- | --- |
-| `kiro-sdd` | You want the whole flow: pick Requirements-First, Design-First, Quick Spec, or Bugfix, and stop at the approval gates |
+| `kiro-sdd` | You want the whole flow: pick Requirements-First, Design-First, Quick Spec, or Bugfix, stop at the spec approval gates, then execute every approved task continuously |
 | `kiro-requirements` | You are writing `requirements.md` or `bugfix.md` with user stories and EARS criteria |
 | `kiro-design` | You are writing `design.md`, or an architecture note or ADR the spec cites |
-| `kiro-tasks` | You are writing `tasks.md`, including the dependency DAG |
+| `kiro-tasks` | You are writing `tasks.md`, including the dependency DAG. Task 1 always sets up CI |
 | `kiro-steering` | You are writing `.kiro/steering/` files and inclusion modes |
 | `kiro-hooks` | You are writing `.kiro/hooks/*.json` hooks |
 | `kiro-mermaid` | You are adding diagrams or checking that they render |
+| `kiro-github-pipeline` | The repo is on GitHub: the idea lives in an issue, the spec goes up as a spec PR that a human merges, approved tasks run continuously with one conventional commit per task, tasks stay in sync with the issue, and one implementation PR closes the issue. Uses `git` and `gh` only |
 
 Copy every folder you want. `kiro-sdd` points at the others, so install the set together.
 
@@ -79,9 +85,13 @@ flowchart LR
 docs/
   architecture.md
   adr/0001-decision.md
+.github/
+  workflows/ci.yml   # task 1 of every task plan
 ```
 
-Feature requirements use numbered user stories and EARS lines (`WHEN ... THEN the system SHALL ...`). Tasks are checkboxes. A task that does work ends with `_Requirements: 1.2, 3.1_`. `tasks.md` also contains a Mermaid DAG: phases as subgraphs, parallel groups nested inside them, arrows for depends-on, and `classDef` styles for the critical path, parallel work, and blocked work.
+Feature requirements use numbered user stories and EARS lines (`WHEN ... THEN the system SHALL ...`). Tasks are checkboxes, and task 1 creates or updates the CI workflow. A task that does work ends with `_Requirements: 1.2, 3.1_`. `tasks.md` also contains a Mermaid DAG: phases as subgraphs, parallel groups nested inside them, arrows for depends-on, and `classDef` styles for the critical path, parallel work, and blocked work.
+
+Requirements, design, and tasks keep their human approval gates. After approval, implementation runs every required task in DAG order without routine stops, updates `tasks.md` and the GitHub issue together, and opens one implementation PR whose body summarizes every task and any deviations. One-task-at-a-time step mode is used only when the user explicitly requests it. The agent pauses only for a material ambiguity or spec change, a destructive or out-of-scope action, missing access, three failed fix attempts on the same task, or a human-only step.
 
 Steering front matter supports `always`, `fileMatch` with `fileMatchPattern`, `manual`, and `auto`. Hooks use schema `v1` and PascalCase triggers such as `PostFileSave` and `UserPromptSubmit`. [`skills/kiro-hooks/assets/kiro-hooks.v1.schema.json`](skills/kiro-hooks/assets/kiro-hooks.v1.schema.json) is a JSON Schema for hook files, written from Kiro's field reference because Kiro does not publish one.
 
@@ -103,7 +113,7 @@ Copy each skill directory into the location your agent reads. The folder name mu
 mkdir -p .kiro/skills
 cp -R skills/kiro-sdd skills/kiro-requirements skills/kiro-design \
       skills/kiro-tasks skills/kiro-steering skills/kiro-hooks \
-      skills/kiro-mermaid .kiro/skills/
+      skills/kiro-mermaid skills/kiro-github-pipeline .kiro/skills/
 ```
 
 Kiro's default agent loads `.kiro/skills/` and `~/.kiro/skills/` on its own. A custom Kiro agent needs the skills in its resources:
@@ -144,6 +154,7 @@ Confirmed from those docs:
 - Specs: [kiro.dev/docs/specs](https://kiro.dev/docs/specs/), [feature specs](https://kiro.dev/docs/specs/feature-specs/), [bugfix specs](https://kiro.dev/docs/specs/bugfix-specs/), [best practices](https://kiro.dev/docs/specs/best-practices/)
 - Steering: [kiro.dev/docs/steering](https://kiro.dev/docs/steering/)
 - Hooks: [kiro.dev/docs/hooks](https://kiro.dev/docs/hooks/), [trigger types](https://kiro.dev/docs/hooks/types/), [IDE 1.0 migration](https://kiro.dev/docs/ide/whats-new-v1/hooks/). The bundled JSON Schema is derived from those pages. It is not an official Kiro file.
+- GitHub CLI: [cli.github.com/manual](https://cli.github.com/manual/) for `gh issue create`, `gh issue edit` (including `--parent` and `--add-sub-issue`), `gh pr create`, `gh pr view`, `gh pr checks`, and `gh run list`, checked through Context7 on 2026-11-02. Action majors in the CI skeleton (`actions/checkout@v6`, `actions/setup-node@v6`) were checked the same day.
 - Skills: [kiro.dev/docs/skills](https://kiro.dev/docs/skills/) and [agentskills.io/specification](https://agentskills.io/specification)
 - Diagrams: [Mermaid flowchart](https://mermaid.js.org/syntax/flowchart.html), [state](https://mermaid.js.org/syntax/stateDiagram.html), [layouts](https://mermaid.js.org/config/layouts.html), [sequence](https://mermaid.js.org/syntax/sequenceDiagram.html), [class](https://mermaid.js.org/syntax/classDiagram.html), [ER](https://mermaid.js.org/syntax/entityRelationshipDiagram.html), and mermaid-cli. Every flowchart and state diagram sets `config.layout` to `elk` in YAML front matter. Other diagram types do not. Layout was checked against the layouts page on 2026-10-31.
 
