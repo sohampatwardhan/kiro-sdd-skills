@@ -1,0 +1,42 @@
+# CI skeleton for task 1 of a Kiro task plan.
+# Copy to .github/workflows/ci.yml. Replace the setup step and the
+# install, lint, build, and test commands with the project's own.
+# references/gh-recipes.md lists commands for other stacks.
+name: CI
+
+on:
+  push:
+    branches: ["**"]
+  pull_request:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.event_name }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  check:
+    name: Build, lint, and test
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6
+
+      # Stack setup. Swap for setup-python, setup-go, setup-java, and so on.
+      - uses: actions/setup-node@v6
+        with:
+          node-version: lts/*
+          cache: npm
+
+      - name: Install
+        run: npm ci
+
+      - name: Lint
+        run: npm run lint
+
+      - name: Build
+        run: npm run build
+
+      - name: Test
+        run: npm test
