@@ -99,6 +99,23 @@ A complete specimen is in [`examples/reading-queue`](examples/reading-queue/READ
 
 ## Install
 
+### With the `skills` CLI
+
+Install with the [`skills` CLI](https://github.com/vercel-labs/skills) (Node.js 22.20 or later). It records the source, so `npx skills update` keeps the skills current:
+
+```bash
+# All skills in this repo, globally (kiro-sdd links to the others, so install the set together)
+npx skills add sohampatwardhan/kiro-sdd-skills -g
+
+# One skill, for chosen agents only
+npx skills add sohampatwardhan/kiro-sdd-skills -g --skill kiro-mermaid -a claude-code -a codex
+
+# Update later
+npx skills update -g
+```
+
+### By hand
+
 Copy each skill directory into the location your agent reads. The folder name must stay the same, because `name` in the front matter has to match it.
 
 | Agent | Project | Global |
@@ -122,7 +139,7 @@ Kiro's default agent loads `.kiro/skills/` and `~/.kiro/skills/` on its own. A c
 { "resources": ["skill://.kiro/skills/**/SKILL.md"] }
 ```
 
-Kiro can also import one skill from a GitHub URL that points at that skill's folder, not at the repository root. The `skills` CLI can install the same folders for other agents (`npx skills add <repo> -a <agent>`). Skill names here are the folder names, such as `kiro-sdd`.
+Kiro can also import one skill from a GitHub URL that points at that skill's folder, not at the repository root. The `skills` CLI above installs the same folders for other agents. Skill names here are the folder names, such as `kiro-sdd`.
 
 Workspace skills override global skills of the same name.
 
