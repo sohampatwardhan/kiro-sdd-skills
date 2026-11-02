@@ -1,6 +1,6 @@
 # Task DAG
 
-The diagram lives in `tasks.md` under a `## Task graph` heading, after the checkbox list.
+The diagram lives at the top of `tasks.md`, under a `## Task graph` heading directly below the `# Implementation Plan` title and any short intro, and before the `## Tasks` checkbox list. Any other chart about the tasks, such as a status or RAG chart, goes in the same top section. The list stays last so an agent reads the order before it starts the first task.
 
 ## Structure
 
@@ -67,5 +67,10 @@ Before approval, all of these are true:
 6. Grouping parents are not nodes, unless the parent itself has a `_Requirements:_` line and no children.
 7. Waves implied by the arrows match any wave list you also write. Recompute waves rather than editing them by hand: a task's wave is one more than the max wave of its dependencies. Tasks with no dependencies are wave 1.
 8. The CI task's node sits alone in the first phase, has no incoming arrows, and reaches every other unchecked task node. In a new plan that means it is the only wave 1 task.
+9. The `## Task graph` section comes before the first checkbox, and no chart sits below the list.
+
+## Execution order
+
+An agent running the approved plan (`kiro-sdd`, "Executing tasks") takes tasks in a topological order of this graph: a task starts only when every source of its incoming arrows is checked. Tasks in the same parallel group, or in the same wave, may run in any order. Ties go to the lower task number. Optional tasks are skipped unless the user asked for them.
 
 Kiro does not read this diagram to discover dependencies. It infers a graph from the task text when running the spec. Keep the task order and the detail bullets consistent with the arrows so that inference and the diagram agree. Early tasks must not depend on later ones.

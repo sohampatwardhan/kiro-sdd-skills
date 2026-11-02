@@ -1,6 +1,25 @@
 # Task list format
 
-This is the shape Kiro's spec task runner reads. Extra Markdown below the list, including the DAG, is documentation. Do not break the list to make the diagram easier.
+This is the shape Kiro's spec task runner reads. Markdown above the list, including the intro and the DAG, is documentation. Do not break the list to make the diagram easier.
+
+## Document order
+
+```text
+# Implementation Plan
+<optional one- or two-sentence intro>
+
+## Task graph
+<what an arrow means and the critical path>
+<the mermaid DAG, plus any status or RAG chart>
+<optional notes on the diagram>
+
+## Tasks
+<the checkbox list, unbroken, to the end of the file>
+```
+
+- The task graph section sits directly under the title and the intro. It is never after the list.
+- The checkbox list is the last section. Do not put prose, headings, or diagrams between checkboxes.
+- No line in the graph section starts with `- [`, so neither Kiro nor the issue sync in `kiro-github-pipeline` reads it as a task.
 
 ## Checkboxes
 

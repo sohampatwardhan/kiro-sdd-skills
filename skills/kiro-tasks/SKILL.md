@@ -23,6 +23,16 @@ Include only work that writes, modifies, or tests code: types, logic, persistenc
 ```markdown
 # Implementation Plan
 
+One or two sentences on what the plan delivers. Optional.
+
+## Task graph
+
+An arrow means depends-on. Primary critical path: 1, 2, 3.1.
+
+(The Mermaid task DAG goes here. See "Dependencies and the DAG".)
+
+## Tasks
+
 - [ ] 1. Set up CI for build, lint, and test
   - Create or update `.github/workflows/ci.yml` to run the project's build, lint, and test commands on push and pull request
   - Gates every later task: it must pass before task 2 starts
@@ -37,6 +47,7 @@ Include only work that writes, modifies, or tests code: types, logic, persistenc
   - _Requirements: 2.1, 3.3_
 ```
 
+- The task graph comes first: the `# Implementation Plan` title, an optional short intro, then `## Task graph` with the DAG, then `## Tasks` with the checkbox list. Any other chart about the tasks, such as a status or RAG chart, sits in that top section too, never between or after the checkboxes.
 - Two levels maximum. Sub-tasks use `2.1`, `2.2`, not a third level.
 - Every checkbox is numbered. Children do not repeat the parent's number as a sibling.
 - The last bullet under a task that does work is `_Requirements: 1.2, 3.1_`. Ids only, comma-separated, no descriptions. Task 1, the CI task, is the only exception (see below).
@@ -65,7 +76,7 @@ Every acceptance-criterion id in `requirements.md` or `bugfix.md` appears in at 
 
 Kiro infers a dependency graph when it runs all tasks, then executes independent tasks in a wave. The checkbox list has no official `depends-on` field. Do not invent one inside the requirement bullet.
 
-Put the graph in a Mermaid flowchart in `tasks.md`:
+Put the graph in a Mermaid flowchart at the top of `tasks.md`, under `## Task graph`, before the checkbox list. A reader or agent sees the order before the tasks:
 
 - Open with the ELK layout front matter from `kiro-mermaid` (`config.layout: elk`), including when the diagram uses nested subgraphs. Merge it into existing front matter. Do not add a second block.
 - Nested subgraphs: phase, then parallel group inside the phase.
@@ -84,6 +95,8 @@ Start with the CI task. Then types and interfaces, then rules, then the entry po
 ## Approval and sync
 
 If this phase is gated, stop and ask: "Do the tasks look good?"
+
+Once the spec is approved, an agent runs every required task in one pass, in DAG order, without stopping between tasks (`kiro-sdd`, "Executing tasks"). Write each task so it can be finished and verified without a human in between: concrete detail bullets, paths the design already names, and a test or check that shows it is done. A task that needs a person (a secret, a repository setting, a manual check) is not a coding task. Leave it out of the plan and say so with the plan.
 
 When syncing after a spec edit, follow `../kiro-sdd/references/iteration.md`. Append tasks. Do not renumber. Rebuild the DAG from the new list.
 
