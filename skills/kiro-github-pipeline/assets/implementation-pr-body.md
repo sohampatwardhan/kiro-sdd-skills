@@ -14,6 +14,10 @@ Closes #[N]
 
 Optional tasks not done: [task numbers and titles, or "None"].
 
+## Deviations
+
+[List every departure from the approved spec or the normal one-commit-per-task history, including the reason and effect, or "None".]
+
 ## Testing
 
 - CI: [workflow run URL] [passed or failed]

@@ -43,14 +43,14 @@ flowchart TB
 
 | Skill | Use it when |
 | --- | --- |
-| `kiro-sdd` | You want the whole flow: pick Requirements-First, Design-First, Quick Spec, or Bugfix, and stop at the approval gates |
+| `kiro-sdd` | You want the whole flow: pick Requirements-First, Design-First, Quick Spec, or Bugfix, stop at the spec approval gates, then execute every approved task continuously |
 | `kiro-requirements` | You are writing `requirements.md` or `bugfix.md` with user stories and EARS criteria |
 | `kiro-design` | You are writing `design.md`, or an architecture note or ADR the spec cites |
 | `kiro-tasks` | You are writing `tasks.md`, including the dependency DAG. Task 1 always sets up CI |
 | `kiro-steering` | You are writing `.kiro/steering/` files and inclusion modes |
 | `kiro-hooks` | You are writing `.kiro/hooks/*.json` hooks |
 | `kiro-mermaid` | You are adding diagrams or checking that they render |
-| `kiro-github-pipeline` | The repo is on GitHub: the idea lives in an issue, the spec goes up as a spec PR that a human merges, tasks stay in sync with the issue, and implementation arrives as one PR that closes the issue. Uses `git` and `gh` only |
+| `kiro-github-pipeline` | The repo is on GitHub: the idea lives in an issue, the spec goes up as a spec PR that a human merges, approved tasks run continuously with one conventional commit per task, tasks stay in sync with the issue, and one implementation PR closes the issue. Uses `git` and `gh` only |
 
 Copy every folder you want. `kiro-sdd` points at the others, so install the set together.
 
@@ -90,6 +90,8 @@ docs/
 ```
 
 Feature requirements use numbered user stories and EARS lines (`WHEN ... THEN the system SHALL ...`). Tasks are checkboxes, and task 1 creates or updates the CI workflow. A task that does work ends with `_Requirements: 1.2, 3.1_`. `tasks.md` also contains a Mermaid DAG: phases as subgraphs, parallel groups nested inside them, arrows for depends-on, and `classDef` styles for the critical path, parallel work, and blocked work.
+
+Requirements, design, and tasks keep their human approval gates. After approval, implementation runs every required task in DAG order without routine stops, updates `tasks.md` and the GitHub issue together, and opens one implementation PR whose body summarizes every task and any deviations. One-task-at-a-time step mode is used only when the user explicitly requests it. The agent pauses only for a material ambiguity or spec change, a destructive or out-of-scope action, missing access, three failed fix attempts on the same task, or a human-only step.
 
 Steering front matter supports `always`, `fileMatch` with `fileMatchPattern`, `manual`, and `auto`. Hooks use schema `v1` and PascalCase triggers such as `PostFileSave` and `UserPromptSubmit`. [`skills/kiro-hooks/assets/kiro-hooks.v1.schema.json`](skills/kiro-hooks/assets/kiro-hooks.v1.schema.json) is a JSON Schema for hook files, written from Kiro's field reference because Kiro does not publish one.
 

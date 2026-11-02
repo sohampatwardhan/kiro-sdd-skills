@@ -98,6 +98,8 @@ If this phase is gated, stop and ask: "Do the tasks look good?"
 
 Once the spec is approved, an agent runs every required task in one pass, in DAG order, without stopping between tasks (`kiro-sdd`, "Executing tasks"). Write each task so it can be finished and verified without a human in between: concrete detail bullets, paths the design already names, and a test or check that shows it is done. A task that needs a person (a secret, a repository setting, a manual check) is not a coding task. Leave it out of the plan and say so with the plan.
 
+Continuous execution is the default. Do not add review gates between tasks or imply that the agent should return after one task. One-task-at-a-time step mode applies only when the user explicitly asks for it. The explicit pause conditions for ambiguity, material spec changes, risky or out-of-scope actions, missing access, repeated failures, and human-only steps live in `kiro-sdd`.
+
 When syncing after a spec edit, follow `../kiro-sdd/references/iteration.md`. Append tasks. Do not renumber. Rebuild the DAG from the new list.
 
 An existing plan written before the CI rule keeps its numbers. Append the CI task with the next free major number, put its node alone in a new first phase of the DAG (`subgraph phase0 [Phase 0 CI]`, so existing phase ids stay put), and draw arrows from it to every unchecked task that has no other unchecked dependency. Say under the diagram that this task runs first despite its number.

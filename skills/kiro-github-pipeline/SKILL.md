@@ -132,15 +132,30 @@ Record the link in `tasks.md` as a detail bullet `- Sub-issue: #123`, placed bef
 
 1. After the spec PR merges, fetch, then create `feat/<N>-<slug>` from the remote default branch.
 2. Task 1 is the CI task (`kiro-tasks` puts it first). Start from `assets/ci.yml`. Take build, lint, and test commands from `.kiro/steering/tech.md`, the design, or the project manifest. Do not invent a tool the project does not use. If a command is missing, task 1's detail bullets name the one it adds. If an older `tasks.md` has no CI task, append one with the next free number as `kiro-tasks` describes. Commit that change as `docs(spec): add ci task to <slug> plan` on the feat branch, then run it first.
-3. For each leaf task, meaning a sub-task or a major task without children, in DAG order:
+3. Execute all required leaf tasks continuously in a topological order of the DAG. Tasks in the same parallel group or wave may run in any order after their dependencies are checked. Do not stop for routine review between tasks. For each leaf task, meaning a sub-task or a major task without children:
    1. Implement it. Run the project's build, lint, and test commands locally.
    2. Check its box in `tasks.md` in the same commit. Check a grouping parent in the commit of its last child.
-   3. Commit once, using the format below. Push.
-   4. Read the CI run for that push. If it fails, fix it in a new commit for the same task before you start the next task. Do not rewrite pushed history.
-   5. Sync the issue block.
+   3. Commit once, using the format below, then push. One conventional commit per task is the normal history.
+   4. Sync the issue block from the checked state in `tasks.md`.
+   5. Read the CI run for that push. The checked box records locally verified implementation, but the task does not unlock downstream DAG tasks until CI is green. If CI fails, keep working on the same task and make at most three reasonable fix attempts before asking the human. Do not start the next task while CI is red. Do not rewrite pushed history; if a CI-only repair therefore needs an additional commit, keep it scoped to the same task and record the extra commit as a deviation in the implementation PR.
 4. Skip optional tasks unless the user asked for them. List skipped optional tasks in the PR body.
-5. Open one implementation PR for the spec against the default branch, with `--body-file` from `assets/implementation-pr-body.md`. Then add its number to the issue block.
+5. Open one implementation PR for the spec against the default branch, with `--body-file` from `assets/implementation-pr-body.md`. Its Changes table summarizes every completed task and its Deviations section records every departure from the approved spec or one-commit-per-task history, including "None" when there were no deviations. Then add its number to the issue block.
 6. Wait for checks to finish and report the result. Stop. A human reviews and merges.
+
+Step mode is optional. Execute one task and return for review only when the user explicitly asks for one-task-at-a-time execution.
+
+### When to pause during implementation
+
+Pause and ask the human only when:
+
+- a requirement or design ambiguity would materially change the result;
+- the approved plan is materially wrong, so `tasks.md`, `design.md`, or the behavior file must change: update the affected spec documents, re-sync the issue, and pause for re-approval before continuing;
+- the next action is destructive, irreversible, or outside the approved scope;
+- required credentials, secrets, permissions, or service access are missing;
+- the same task's tests or CI still fail after three reasonable fix attempts; report the attempts, logs, and remaining failure;
+- a step can only be completed by a human.
+
+Do not pause merely because a task ended, checks passed, another task is difficult, or an ordinary implementation decision is needed.
 
 Commit format:
 
@@ -159,7 +174,7 @@ Refs #42
 ### Implementation PR body
 
 - First line `Closes #N`, plus one `Closes #M` line per sub-issue.
-- `## Summary`, `## Changes` (one row per task with its commit SHA), `## Testing` (the CI run and the local commands with results).
+- `## Summary`, `## Changes` (one row per completed task with its commit SHA and outcome), `## Deviations` (every departure from the approved spec or normal one-commit-per-task history, or `None`), and `## Testing` (the CI run and the local commands with results).
 - `## Acceptance checklist`: one line per acceptance criterion id in `requirements.md` or `bugfix.md`, in document order, quoting the EARS text and naming the test or check that shows it. Check a line only when that evidence is in this PR and passed. Leave a line unchecked with a reason when it is not shown. Skip withdrawn criteria. For a bugfix, the current-behavior lines point at the regression test that failed before the fix.
 - Title: a conventional commit subject for the whole change, such as `feat(queue): add reading queue` or `fix(queue): match duplicate titles after case fold`.
 
@@ -179,5 +194,5 @@ After opening, confirm `closingIssuesReferences` on the PR includes `#N`.
 - Issue `#N` links the spec PR and the implementation PR, and its agent block matches `tasks.md` exactly.
 - The spec PR says `Refs #N` and was merged by a human.
 - Task 1 in `tasks.md` is the CI workflow, and the task DAG starts at it.
-- `feat/<N>-<slug>` has one commit per leaf task, plus CI fix commits if any, and every required task is checked in `tasks.md` and in the issue.
-- The implementation PR is open with `Closes #N`, Summary, Changes, Testing, and an acceptance checklist that covers every criterion id that is not withdrawn. CI status is reported, including failures.
+- `feat/<N>-<slug>` has one commit per leaf task, plus documented CI repair commits if any, and every required task is checked in `tasks.md` and in the issue.
+- The implementation PR is open with `Closes #N`, Summary, Changes covering every completed task, Deviations, Testing, and an acceptance checklist that covers every criterion id that is not withdrawn. CI status is reported, including failures.

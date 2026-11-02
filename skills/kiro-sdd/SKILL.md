@@ -110,8 +110,26 @@ Read `references/iteration.md`. Edit files in place. Do not renumber requirement
 
 ## Executing tasks
 
-Executing a task is a separate request. When the user asks to implement, read all three spec files, do one numbered task (its sub-tasks first when it has them), and stop for review. Do not mark a checkbox done unless the work for that task is actually in the tree.
+Implementation starts only after the requirements or bug analysis, design, and tasks are approved. In the GitHub pipeline, the spec pull request must also be merged. These are approval gates for the spec documents; there is no routine review gate between implementation tasks.
 
-Task 1 is the CI task. Do it before any other task so later tasks are checked by CI as they land.
+When the user asks to implement, read all three spec files and execute every required task in one continuous run:
 
-In the GitHub pipeline, follow `kiro-github-pipeline` instead of stopping after each task: work on `feat/<issue>-<slug>`, make one conventional commit per task, update the issue checklist after each push, and open one implementation pull request when the required tasks are done. Do not merge it.
+1. Follow the task DAG in topological order. Task 1 is the CI task and runs first. Tasks in the same parallel group or wave may run in any order after all their dependencies are checked.
+2. Finish and verify one leaf task before starting the next. Do not mark a checkbox done unless that task's work is in the tree and its local checks pass.
+3. Check the leaf task in `tasks.md`; check a grouping parent with its last child. Commit the implementation and checkbox update together as one conventional commit for that task.
+4. Continue without stopping for review until every required task is checked. Skip optional tasks unless the user asked for them.
+
+Offer step mode, which executes one task and returns for review, only when the user explicitly asks for one-task-at-a-time execution. Do not infer step mode from an ordinary implementation request.
+
+Pause and ask the human only when:
+
+- a requirement or design ambiguity would materially change the result;
+- the approved plan is materially wrong, so `tasks.md`, `design.md`, or the behavior file must change: update the affected spec documents, keep their diagrams and traceability in sync, and pause for re-approval before continuing implementation;
+- the next action is destructive, irreversible, or outside the approved scope;
+- required credentials, secrets, permissions, or service access are missing;
+- the same task's tests or CI still fail after three reasonable fix attempts; report the attempts and the remaining failure;
+- a step can only be completed by a human.
+
+Ordinary implementation choices, successful checks, task boundaries, and tasks that are merely difficult are not reasons to stop.
+
+In the GitHub pipeline, follow `kiro-github-pipeline`: work on `feat/<issue>-<slug>`, push each task commit, and keep `tasks.md` and the issue checklist in sync. Open the single implementation pull request only after all required tasks are complete. Its body summarizes every completed task and records any deviations from the approved spec or one-commit-per-task history. Do not merge it.
