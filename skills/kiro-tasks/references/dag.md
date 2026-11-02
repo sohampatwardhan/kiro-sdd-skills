@@ -10,13 +10,16 @@ config:
   layout: elk
 ---
 flowchart TB
-  subgraph phase1 [Phase 1 Foundation]
-    t1["1. Write types"]
+  subgraph phase1 [Phase 1 CI]
+    t1["1. Set up CI for build, lint, and test"]
   end
-  subgraph phase2 [Phase 2 Rules]
-    subgraph parallel2 [Parallel after 1]
-      t21["2.1 Reject duplicates"]
-      t22["2.2 Reorder entries"]
+  subgraph phase2 [Phase 2 Foundation]
+    t2["2. Write types"]
+  end
+  subgraph phase3 [Phase 3 Rules]
+    subgraph parallel3 [Parallel after 2]
+      t31["3.1 Reject duplicates"]
+      t32["3.2 Reorder entries"]
     end
   end
   subgraph legend [Legend]
@@ -24,17 +27,20 @@ flowchart TB
     legPar["Parallelizable"]
     legBlock["Blocked"]
   end
-  t1 --> t21
-  t1 --> t22
+  t1 --> t2
+  t2 --> t31
+  t2 --> t32
   classDef critical fill:#fde68a,stroke:#b45309,color:#1c1917
   classDef parallel fill:#dbeafe,stroke:#1d4ed8,color:#1e3a8a
   classDef blocked fill:#fecaca,stroke:#b91c1c,color:#7f1d1d
-  class t1 critical
-  class t21,t22 parallel
+  class t1,t2 critical
+  class t31,t32 parallel
   class legCrit critical
   class legPar parallel
   class legBlock blocked
 ```
+
+- The CI task is node `t1`, alone in the first phase subgraph. In a new plan it is the only wave 1 task. Every task that has no other dependency gets an arrow from `t1`. It is always `critical`, because every chain starts there. A plan that appended its CI task later (see `../SKILL.md`) still draws that node alone in the first phase, here `phase0`.
 
 - Open with the ELK layout front matter from `kiro-mermaid` (`config.layout: elk`), then `flowchart TB` or `flowchart LR`. Nested subgraphs stay inside that flowchart. Merge into existing front matter instead of adding a second block.
 - Direction `TB` or `LR`. Prefer `TB` when there are several phases.
@@ -60,5 +66,6 @@ Before approval, all of these are true:
 5. A task that the prose says "builds on X" has an arrow from X.
 6. Grouping parents are not nodes, unless the parent itself has a `_Requirements:_` line and no children.
 7. Waves implied by the arrows match any wave list you also write. Recompute waves rather than editing them by hand: a task's wave is one more than the max wave of its dependencies. Tasks with no dependencies are wave 1.
+8. The CI task's node sits alone in the first phase, has no incoming arrows, and reaches every other unchecked task node. In a new plan that means it is the only wave 1 task.
 
 Kiro does not read this diagram to discover dependencies. It infers a graph from the task text when running the spec. Keep the task order and the detail bullets consistent with the arrows so that inference and the diagram agree. Early tasks must not depend on later ones.

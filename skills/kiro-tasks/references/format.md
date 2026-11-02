@@ -5,15 +5,19 @@ This is the shape Kiro's spec task runner reads. Extra Markdown below the list, 
 ## Checkboxes
 
 ```markdown
-- [ ] 1. Write the queue entry types
+- [ ] 1. Set up CI for build, lint, and test
+  - Add `.github/workflows/ci.yml` running `npm ci`, `npm run lint`, `npm run build`, and `npm test` on push and pull request
+  - Gates every later task: it must pass before task 2 starts
+
+- [ ] 2. Write the queue entry types
   - Add the status enum and the entry record
   - _Requirements: 1.1, 1.2_
 
-- [ ] 2. Enforce queue rules
-- [ ] 2.1 Reject a duplicate open title
+- [ ] 3. Enforce queue rules
+- [ ] 3.1 Reject a duplicate open title
   - Compare titles after trim and case fold
   - _Requirements: 1.4_
-- [ ] 2.2 Reorder queued entries
+- [ ] 3.2 Reorder queued entries
   - _Requirements: 2.1, 2.2_
 ```
 
@@ -27,20 +31,21 @@ This is the shape Kiro's spec task runner reads. Extra Markdown below the list, 
 
 ## Parents and children
 
-If 2.1 exists, do not also describe the same work on task 2. Task 2 is the group. An agent executing "task 2" should start at 2.1.
+If 3.1 exists, do not also describe the same work on task 3. Task 3 is the group. An agent executing "task 3" should start at 3.1.
 
-A task with no children is a single unit of work and must carry its own `_Requirements:_` line.
+A task with no children is a single unit of work and must carry its own `_Requirements:_` line. The one exception is task 1, the CI task. It implements no acceptance criterion, so it has no `_Requirements:_` line. Its last detail bullet says that it gates every later task.
 
 ## Coverage
 
-Build a set of cited ids and compare it to the behavior file before asking for approval. SHALL criteria are required. WITHDRAWN criteria are not cited. SHOULD criteria are cited only by optional tasks unless the user promoted them.
+Build a set of cited ids and compare it to the behavior file before asking for approval. Skip task 1, the CI task, in this check. SHALL criteria are required. WITHDRAWN criteria are not cited. SHOULD criteria are cited only by optional tasks unless the user promoted them.
 
 ## Bugfix tasks
 
 Include, in order when the dependencies allow:
 
-1. A test that fails on the current behavior (Requirement 1).
-2. The code change for the expected behavior (Requirement 2).
-3. Tests that the unchanged behavior still holds (Requirement 3).
+1. The CI task, as in every plan.
+2. A test that fails on the current behavior (Requirement 1).
+3. The code change for the expected behavior (Requirement 2).
+4. Tests that the unchanged behavior still holds (Requirement 3).
 
 No unrelated cleanup tasks.
