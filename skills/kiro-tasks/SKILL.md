@@ -5,7 +5,7 @@ license: MIT
 compatibility: "Portable Agent Skills package. Writes Markdown. The task DAG follows the kiro-mermaid skill."
 metadata:
   author: kiro-sdd-skills
-  version: "1.1.0"
+  version: "1.2.0"
 ---
 
 # Kiro tasks
@@ -68,7 +68,7 @@ Every new task list starts with a CI task, so each later task lands on a branch 
 - Task 1 implements no acceptance criterion. It has no `_Requirements:_` line, and coverage checks skip it. Its last detail bullet says that it gates every later task.
 - Every other task depends on task 1, directly or through another task.
 
-Bugfix plans follow the same rule. The failing reproduction test moves to task 2.
+Bugfix plans follow the same rule. Task 2 holds the reproduction test and the smallest fix together (`references/format.md`).
 
 ## Traceability
 
@@ -92,7 +92,9 @@ Put the graph in a Mermaid flowchart at the top of `tasks.md`, under `## Task gr
 
 ## Order
 
-Start with the CI task. Then types and interfaces, then rules, then the entry points that wire them, then tests that lock the criteria. Interleave tests with the rules they lock when that keeps a step small. No orphan code that nothing later calls.
+Start with the CI task. Then types and interfaces, then rules, then the entry points that wire them. Each task that changes behavior carries the tests for its criteria. During execution they are written first (`test-driven-development`), so do not add a separate "write tests" task for that behavior. Separate test tasks are only for extra coverage, usually `(optional)`. No orphan code that nothing later calls.
+
+Before the gate, check that the names, signatures, and paths tasks share agree with each other and with the design's Components and Interfaces.
 
 ## Approval and sync
 

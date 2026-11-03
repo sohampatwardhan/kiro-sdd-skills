@@ -63,8 +63,7 @@ Build a set of cited ids and compare it to the behavior file before asking for a
 Include, in order when the dependencies allow:
 
 1. The CI task, as in every plan.
-2. A test that fails on the current behavior (Requirement 1).
-3. The code change for the expected behavior (Requirement 2).
-4. Tests that the unchanged behavior still holds (Requirement 3).
+2. The fix: a test that fails on the current behavior (Requirement 1), then the code change for the expected behavior (Requirement 2). Both go in one task and one commit, test first (`test-driven-development`), so no pushed commit leaves CI red.
+3. Tests that the unchanged behavior still holds (Requirement 3).
 
 No unrelated cleanup tasks.
