@@ -1,11 +1,11 @@
 ---
 name: kiro-sdd
-description: "Orchestrate Kiro-compatible spec-driven development. Use when creating or updating a Kiro feature spec, bugfix spec, or quick spec, or when the user asks for requirements, design, and tasks under .kiro/specs. Selects Requirements-First, Design-First, Quick Spec, or Bugfix, enforces phase approval gates, and delegates file format to the kiro-requirements, kiro-design, kiro-tasks, kiro-steering, kiro-hooks, and kiro-mermaid skills. Routes projects hosted on GitHub through kiro-github-pipeline for the issue, spec PR, and implementation PR."
+description: "Orchestrate Kiro-compatible spec-driven development. Use when creating or updating a Kiro feature spec, bugfix spec, or quick spec, or when the user asks for requirements, design, and tasks under .kiro/specs. Selects Requirements-First, Design-First, Quick Spec, or Bugfix, enforces phase approval gates, and delegates file format to the kiro-requirements, kiro-design, kiro-tasks, kiro-steering, kiro-hooks, and kiro-mermaid skills. Keeps specs proportionate to the change and makes routine calls itself instead of asking. Routes projects hosted on GitHub through kiro-github-pipeline for the issue, spec commits on the default branch, and the implementation PR."
 license: MIT
 compatibility: "Portable Agent Skills package. Writes Markdown and JSON. Optional diagram check uses @mermaid-js/mermaid-cli when Node.js and Chrome or Chromium are available."
 metadata:
   author: kiro-sdd-skills
-  version: "1.0.0"
+  version: "1.1.0"
 ---
 
 # Kiro spec-driven development
@@ -20,7 +20,7 @@ Use this skill to drive a Kiro-compatible spec from idea to an approved task lis
 | Project context | `kiro-steering` | `.kiro/steering/*.md` |
 | Agent hooks | `kiro-hooks` | `.kiro/hooks/*.json` |
 | Diagrams in any of the above | `kiro-mermaid` | fenced `mermaid` blocks that parse with `mmdc`; flowcharts and state diagrams set `layout: elk` |
-| Issue, branches, and pull requests on GitHub | `kiro-github-pipeline` | issue checklist, `spec/<issue>-<slug>` spec PR, `feat/<issue>-<slug>` implementation PR |
+| Issue, branches, and pull requests on GitHub | `kiro-github-pipeline` | issue checklist and spec comment, spec commits on the default branch, `feat/<issue>-<slug>` implementation PR |
 
 When these skills are installed side by side, the sibling folders sit next to this one (`../kiro-requirements/SKILL.md`, and the same for the others).
 
@@ -29,14 +29,15 @@ When these skills are installed side by side, the sibling folders sit next to th
 Before the first write, check whether the project uses GitHub: `git remote -v` points at `github.com` or a GitHub Enterprise host the user named, and `gh auth status` succeeds. When both hold, run this skill inside `../kiro-github-pipeline/SKILL.md` and tell the user you are doing so:
 
 - The idea comes from a GitHub issue, or goes into a new one.
-- Spec files are committed on `spec/<issue>-<slug>` and opened as a spec pull request that says `Refs #<issue>`. The phase gates below still apply. Merging that pull request is the final gate before any implementation.
-- Implementation runs on `feat/<issue>-<slug>` and ends in one implementation pull request that says `Closes #<issue>`. A human merges it.
+- Spec and steering files are not code. Each is committed (`docs(spec): ...`, `docs(steering): ...`, body `Refs #<issue>`) and pushed straight to the default branch. No spec branch, no spec pull request. The phase gates below still apply. The user's approval of the pushed spec is the final gate before any implementation.
+- Open questions go on the issue as a comment, never in a pull request or commit message.
+- Implementation runs on `feat/<issue>-<slug>` and ends in one implementation pull request that says `Closes #<issue>`. Pull requests are only for this work. A human merges it.
 
 Skip the pipeline only when the user says not to use GitHub for this spec. If the remote is GitHub but `gh` is missing or not authenticated, say so and ask whether to continue with local files only.
 
 ## Choose the workflow first
 
-Ask only for what was left open. If the user already named a workflow, do not ask again.
+Pick it from the request with this table. Ask only when the request fits two rows equally. Quick Spec still needs the user to opt in.
 
 | Workflow | When | Order | Approval gates |
 | --- | --- | --- | --- |
@@ -75,9 +76,18 @@ flowchart TB
   quick --> tasksQ["kiro-tasks"]
 ```
 
+## Proportion and decisions
+
+The spec should be useful, not a burden. Size it to the change and do the thinking yourself.
+
+- **Proportionate.** A small change gets a few requirements and a short design. Group related criteria under one capability instead of one requirement per tool, endpoint, or flag. If the three files pass roughly 500 lines of prose, cut repetition or split the work into smaller specs. Diagrams do not count against this: keep every diagram the sibling skills call for.
+- **Say it once.** Requirements own behavior, design owns how and why, tasks own order. Cite ids instead of restating criteria. Prefer a table to paragraphs. No review checklists, sign-off boxes, or ceremony sections.
+- **Decide, don't ask.** When a choice has a sensible default (what the repo or a sibling repo already does, steering, the user's stated goal, the smaller scope, deferring a non-goal), make it and record it in `design.md` under Decisions with a one-line rationale. Ask only when a wrong guess would be costly to undo and the repo, sibling repos, docs, and the user's goals cannot settle it. At most one or two crisp questions, each with your recommended answer. Never a questionnaire.
+- **Keep momentum.** At each gate, summarize in a few lines: what is being built, the calls you made, and anything risky. Do not paste the file back or make the user re-derive your reasoning.
+
 ## Phase gates
 
-Unless the user asked for Quick Spec, do not start the next phase until they approve the current file. Ask in the chat, one question at a time:
+Unless the user asked for Quick Spec, do not start the next phase until they approve the current file. Give the short summary above, then ask in the chat:
 
 1. Requirements: "Do the requirements look good? If so, we can move on to the design."
 2. Design: "Does the design look good? If so, we can move on to the implementation plan."
@@ -85,7 +95,7 @@ Unless the user asked for Quick Spec, do not start the next phase until they app
 
 Revise the same file from their feedback and ask again. Treat "yes", "approved", and "looks good" as approval. Anything else is a revision.
 
-On a Requirements-First spec, offer an analysis pass before design. Read `references/workflows.md`. On Quick Spec, still run that checklist silently and list residual risks with the task plan. Do not pretend a gate happened.
+On a Requirements-First spec, offer an analysis pass before design. Read `references/workflows.md`. On Quick Spec, still run that checklist silently, fix what it finds, and include residual risks in the summary. Do not pretend a gate happened.
 
 ## What to read before writing
 
@@ -110,7 +120,7 @@ Read `references/iteration.md`. Edit files in place. Do not renumber requirement
 
 ## Executing tasks
 
-Implementation starts only after the requirements or bug analysis, design, and tasks are approved. In the GitHub pipeline, the spec pull request must also be merged. These are approval gates for the spec documents; there is no routine review gate between implementation tasks.
+Implementation starts only after the requirements or bug analysis, design, and tasks are approved. In the GitHub pipeline, the approved spec must be on the default branch. These are approval gates for the spec documents; there is no routine review gate between implementation tasks.
 
 When the user asks to implement, read all three spec files and execute every required task in one continuous run:
 
@@ -123,7 +133,7 @@ Offer step mode, which executes one task and returns for review, only when the u
 
 Pause and ask the human only when:
 
-- a requirement or design ambiguity would materially change the result;
+- a requirement or design ambiguity would materially change the result, and the repo, docs, and the user's goals do not settle it;
 - the approved plan is materially wrong, so `tasks.md`, `design.md`, or the behavior file must change: update the affected spec documents, keep their diagrams and traceability in sync, and pause for re-approval before continuing implementation;
 - the next action is destructive, irreversible, or outside the approved scope;
 - required credentials, secrets, permissions, or service access are missing;
@@ -132,4 +142,4 @@ Pause and ask the human only when:
 
 Ordinary implementation choices, successful checks, task boundaries, and tasks that are merely difficult are not reasons to stop.
 
-In the GitHub pipeline, follow `kiro-github-pipeline`: work on `feat/<issue>-<slug>`, push each task commit, and keep `tasks.md` and the issue checklist in sync. Open the single implementation pull request only after all required tasks are complete. Its body summarizes every completed task and records any deviations from the approved spec or one-commit-per-task history. Do not merge it.
+In the GitHub pipeline, follow `kiro-github-pipeline`: work on `feat/<issue>-<slug>`, push each task commit, and keep `tasks.md` and the issue checklist in sync. Open the single implementation pull request only after all required tasks are complete. Its body is Summary, Changes (every completed task and any deviations), and Testing. Do not merge it.
