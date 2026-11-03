@@ -5,7 +5,7 @@ license: MIT
 compatibility: "Portable Agent Skills package. Writes Markdown. Diagrams follow the kiro-mermaid skill."
 metadata:
   author: kiro-sdd-skills
-  version: "1.1.0"
+  version: "1.2.0"
 ---
 
 # Kiro design
@@ -30,6 +30,8 @@ Details and what each section must decide are in `references/sections.md`. The s
 Overview ends with a `### Decisions` table: decision, why, and the alternative rejected. Record every call you made where the repo, a sibling repo, steering, or the user's goals gave a sensible default, and every assumption the design rests on. Ask the user only about the one or two calls a wrong guess would make costly (`kiro-sdd`, "Proportion and decisions").
 
 Keep the prose short. Use tables for tools, endpoints, settings, and error codes. Cite requirement ids instead of restating criteria. Diagrams carry the structure, so keep all the ones below that fit.
+
+Before the gate, read the design as the implementer would. Anything they would have to ask is answered in the design or recorded under Decisions.
 
 ## Inputs
 
@@ -68,7 +70,7 @@ Do not create these docs for a spec that is fully explained in `design.md`.
 
 ## Bugfix designs
 
-Same six headings. Overview states the root cause in one paragraph. Architecture shows the broken interaction as a sequence diagram. Testing Strategy lists three properties:
+Same six headings. Overview states the root cause in one paragraph. Find it with superpowers `systematic-debugging` phases 1 to 3: reproduce, trace back to the source, and test one hypothesis. Do not apply the fix; the fix is a task (`../kiro-sdd/references/superpowers.md`). Architecture shows the broken interaction as a sequence diagram. Testing Strategy lists three properties:
 
 - Current implementation produces the incorrect behavior.
 - Fixed implementation produces the expected behavior.
