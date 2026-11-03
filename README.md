@@ -93,9 +93,41 @@ Feature requirements use numbered user stories and EARS lines (`WHEN ... THEN th
 
 Specs are sized to the change: grouped criteria, tables over prose, each fact stated once, no ceremony checklists, and as many diagrams as the structure needs. The agent makes routine calls itself and records them as Decisions in `design.md`. It asks at most one or two questions, only where a wrong guess would be costly, and on GitHub those go on the issue.
 
-Requirements, design, and tasks keep their human approval gates. On GitHub, each spec file is pushed straight to the default branch before its gate, with a short summary of what is being built, the decisions, and the risks. After approval, implementation runs every required task in DAG order without routine stops, updates `tasks.md` and the GitHub issue together, and opens one implementation PR with Summary, Changes, and Testing. One-task-at-a-time step mode is used only when the user explicitly requests it. The agent pauses only for a material ambiguity or spec change, a destructive or out-of-scope action, missing access, three failed fix attempts on the same task, or a human-only step.
+Requirements, design, and tasks keep their human approval gates. On GitHub, each spec file is pushed straight to the default branch before its gate, with a short summary of what is being built, the decisions, and the risks. After approval, implementation runs every required task test-first in DAG order without routine stops and updates `tasks.md` and the GitHub issue together. It gets one code review of the whole branch, then opens one implementation PR with Summary, Changes, and Testing. One-task-at-a-time step mode is used only when the user explicitly requests it. The agent pauses only for a material ambiguity or spec change, a destructive or out-of-scope action, missing access, three failed fix attempts on the same task, or a human-only step.
 
 Steering front matter supports `always`, `fileMatch` with `fileMatchPattern`, `manual`, and `auto`. Hooks use schema `v1` and PascalCase triggers such as `PostFileSave` and `UserPromptSubmit`. [`skills/kiro-hooks/assets/kiro-hooks.v1.schema.json`](skills/kiro-hooks/assets/kiro-hooks.v1.schema.json) is a JSON Schema for hook files, written from Kiro's field reference because Kiro does not publish one.
+
+## Superpowers
+
+Some steps are done better by [obra/superpowers](https://github.com/obra/superpowers) skills, so the kiro skills call those skills there instead of carrying their own version:
+
+| Step | Superpowers skill | Called from |
+| --- | --- | --- |
+| The idea is too fuzzy to draft | `brainstorming` | `kiro-sdd`, `kiro-requirements` |
+| Bugfix root cause; a failing test, build, or CI run | `systematic-debugging` | `kiro-sdd`, `kiro-design`, `kiro-github-pipeline` |
+| Each task that changes behavior | `test-driven-development` | `kiro-sdd`, `kiro-tasks`, `kiro-github-pipeline` |
+| After the last task, before the implementation PR | `requesting-code-review` | `kiro-sdd`, `kiro-github-pipeline` |
+| Review findings or PR comments | `receiving-code-review` | `kiro-sdd`, `kiro-github-pipeline` |
+| The checkout holds other work when implementation starts | `using-git-worktrees` | `kiro-github-pipeline` |
+
+Requirements, design, tasks, the execution loop, verification, and finishing the branch stay with the kiro skills, because their formats and rules fit Kiro specs better. `writing-plans`, `executing-plans`, `subagent-driven-development`, `dispatching-parallel-agents`, `finishing-a-development-branch`, and `verification-before-completion` are not called on a Kiro spec. [`skills/kiro-sdd/references/superpowers.md`](skills/kiro-sdd/references/superpowers.md) has the scored comparison for each step, the kiro rules that still apply inside each delegated skill, and the fallbacks.
+
+Before calling one, the agent checks that it is installed, and installs it if it is missing:
+
+```bash
+sh skills/kiro-sdd/scripts/ensure-superpowers.sh test-driven-development systematic-debugging
+# installs anything missing with:
+#   npx -y skills add obra/superpowers -g -y --skill <skill> ...
+# prints "<skill> <path to SKILL.md>", or "<skill> MISSING" and exit 1
+```
+
+The script looks for `<skill>/SKILL.md` in project and global `.agents`, `.claude`, `.kiro`, and `.cursor` skill folders, in `~/.codex/skills`, and in the Claude Code plugin cache. A skill that is already there is never reinstalled. If the install cannot run (no Node.js, no network, or policy), the agent says so and follows the kiro fallback for that step. To try the install without touching your real setup:
+
+```bash
+HOME=$(mktemp -d) CI=true sh skills/kiro-sdd/scripts/ensure-superpowers.sh test-driven-development
+```
+
+## Example
 
 A complete specimen is in [`examples/reading-queue`](examples/reading-queue/README.md): a personal reading queue, plus a small bugfix spec for duplicate titles.
 
