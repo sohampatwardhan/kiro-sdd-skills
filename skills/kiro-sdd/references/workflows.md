@@ -49,9 +49,10 @@ The user must opt in ("quick spec", "skip the gates", "one pass"). Write require
 
 Use a bugfix spec when the defect is in a critical path, the root cause is unclear, earlier fixes caused regressions, or the fix must be documented. A one-line typo does not need one.
 
-1. Write `bugfix.md` with current, expected, and unchanged behavior.
-2. Design records root cause, the smallest fix, and three test properties: the bug reproduces, the fix corrects it, and unchanged behavior still holds.
-3. Tasks implement that fix and those tests. No drive-by refactors.
+1. Reproduce the defect and find its root cause with `systematic-debugging` phases 1 to 3 (see `superpowers.md`). Investigate only. Do not fix it yet.
+2. Write `bugfix.md` with current, expected, and unchanged behavior.
+3. Design records root cause, the smallest fix, and three test properties: the bug reproduces, the fix corrects it, and unchanged behavior still holds.
+4. Tasks implement that fix and those tests. No drive-by refactors.
 
 Kiro generates property-based tests for these properties in the IDE. Other surfaces still get the tasks; do not claim a PBT runner exists where the project has none.
 
