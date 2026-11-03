@@ -5,7 +5,7 @@ license: MIT
 compatibility: "Portable Agent Skills package. Needs git and an authenticated GitHub CLI (gh). Sub-issue flags need a gh release that lists --parent and --add-sub-issue; references/gh-recipes.md has a gh api fallback. Writes Markdown and YAML."
 metadata:
   author: kiro-sdd-skills
-  version: "1.1.0"
+  version: "1.2.0"
 ---
 
 # Kiro GitHub pipeline
@@ -14,7 +14,7 @@ Use this skill to carry a Kiro spec from a GitHub issue to an implementation pul
 
 Spec documents (`requirements.md` or `bugfix.md`, `design.md`, `tasks.md`) and steering files are not code. They are committed and pushed straight to the default branch: no spec branch, no spec pull request. Pull requests are only for implementation work that may change code.
 
-Everything here runs through `git` and `gh`. Any agent that can run shell commands can follow it.
+Everything here runs through `git` and `gh`. Any agent that can run shell commands can follow it. Steps that name a superpowers skill (`brainstorming`, `test-driven-development`, `systematic-debugging`, `requesting-code-review`, `receiving-code-review`, `using-git-worktrees`) follow `../kiro-sdd/references/superpowers.md`, including its install check and fallbacks.
 
 ## Pipeline
 
@@ -38,6 +38,7 @@ flowchart TB
     work["One conventional commit per task"]
     sync2["Check the task in tasks.md and the issue"]
   end
+  review["requesting-code-review, then fix findings"]
   implPr["gh pr create with Closes for the issue"]
   human["Human reviews and merges"]
   issue --> spec
@@ -49,7 +50,8 @@ flowchart TB
   ci --> sync2
   work --> sync2
   sync2 -->|"next task"| work
-  sync2 -->|"all required tasks done"| implPr
+  sync2 -->|"all required tasks done"| review
+  review --> implPr
   implPr --> human
 ```
 
@@ -72,6 +74,7 @@ flowchart TB
 
 - If the user gave an issue number, read it with `gh issue view`, comments included. Its body is the idea that `kiro-sdd` starts from. Do not rewrite the human's text. Add only the agent block described in Stage 3.
 - Otherwise fill `assets/issue-template.md` into a temporary body file, strip its front matter, and run `gh issue create --title ... --body-file ...`. Add a label only if `gh label list` shows it exists.
+- If `kiro-sdd` ran `brainstorming` because the idea was fuzzy, post the agreed outcome (intent, goals and non-goals, chosen approach) as one comment on the issue before the first spec commit.
 - The issue kind picks the workflow. A bug goes to the Bugfix workflow. A feature lets `kiro-sdd` choose Requirements-First or Design-First, and a stated architecture or hard constraint in the issue points to Design-First.
 - Copy the template to `.github/ISSUE_TEMPLATE/kiro-spec.md` only when the user asks for it or the repository has no issue template. Commit it to the default branch with the spec.
 
@@ -135,17 +138,18 @@ Record the link in `tasks.md` as a detail bullet `- Sub-issue: #123`, placed bef
 
 ## Stage 4: Implementation
 
-1. After approval, fetch, then create `feat/<N>-<slug>` from the remote default branch, which already holds the approved spec. Set the status to `in progress`.
+1. After approval, fetch, then create `feat/<N>-<slug>` from the remote default branch, which already holds the approved spec. If the checkout holds other work, create the branch in a worktree with `using-git-worktrees` and keep the worktree until the PR merges. Run the build and tests once before task 1. If they already fail, pause and report it, because CI could not tell your failures from existing ones. Set the status to `in progress`.
 2. Task 1 is the CI task (`kiro-tasks` puts it first). Start from `assets/ci.yml`. Take build, lint, and test commands from `.kiro/steering/tech.md`, the design, or the project manifest. Do not invent a tool the project does not use. If a command is missing, task 1's detail bullets name the one it adds. If an older `tasks.md` has no CI task, append one with the next free number as `kiro-tasks` describes. Commit it to the default branch as `docs(spec): add ci task to <slug> plan` before creating the feat branch, then run it first.
 3. Execute all required leaf tasks continuously in a topological order of the DAG. Tasks in the same parallel group or wave may run in any order after their dependencies are checked. Do not stop for routine review between tasks. For each leaf task, meaning a sub-task or a major task without children:
-   1. Implement it. Run the project's build, lint, and test commands locally.
-   2. Check its box in `tasks.md` in the same commit. Check a grouping parent in the commit of its last child. Checkbox ticks are the only spec edits that travel on the feat branch.
+   1. Implement it test-first with `test-driven-development` (the approved plan exempts task 1 and config-only tasks). Then run the project's build, lint, and test commands locally.
+   2. Check its box in `tasks.md` in the same commit, only on output from a run made after the task's last change. Check a grouping parent in the commit of its last child. Checkbox ticks are the only spec edits that travel on the feat branch.
    3. Commit once, using the format below, then push. One conventional commit per task is the normal history.
    4. Sync the issue block from the checked state in `tasks.md`.
-   5. Read the CI run for that push. The checked box records locally verified implementation, but the task does not unlock downstream DAG tasks until CI is green. If CI fails, keep working on the same task and make at most three reasonable fix attempts before asking the human. Do not start the next task while CI is red. Do not rewrite pushed history; if a CI-only repair therefore needs an additional commit, keep it scoped to the same task and record it as a deviation in the implementation PR.
+   5. Read the CI run for that push. The checked box records locally verified implementation, but the task does not unlock downstream DAG tasks until CI is green. If CI fails, stay on the same task and debug it with `systematic-debugging`. After three failed fixes, pause. Do not start the next task while CI is red. Do not rewrite pushed history; if a CI-only repair therefore needs an additional commit, keep it scoped to the same task and record it as a deviation in the implementation PR.
 4. Skip optional tasks unless the user asked for them. List skipped optional tasks in the PR body.
-5. Open one implementation PR for the spec against the default branch, with `--body-file` from `assets/implementation-pr-body.md`. Then add its number to the issue block.
-6. Wait for checks to finish and report the result. Stop. A human reviews and merges.
+5. Run `requesting-code-review` once on `$(git merge-base origin/<default> HEAD)..HEAD`, with the three spec files as the requirements. Fix Critical and Important findings with `receiving-code-review`, in commits scoped to the task they touch, and list those commits under Deviations.
+6. Open one implementation PR for the spec against the default branch, with `--body-file` from `assets/implementation-pr-body.md`. Then add its number to the issue block.
+7. Wait for checks to finish and report the result. Stop. A human reviews and merges. When the user asks you to address review comments, use `receiving-code-review`. Reply in each review thread, and put any question that would change the spec on the issue.
 
 Step mode is optional. Execute one task and return for review only when the user explicitly asks for one-task-at-a-time execution.
 
@@ -157,7 +161,7 @@ Pause and ask the human only when:
 - the approved plan is materially wrong: commit the spec revision to the default branch, merge the default branch into the feat branch, re-sync the issue, and pause for re-approval before continuing;
 - the next action is destructive, irreversible, or outside the approved scope;
 - required credentials, secrets, permissions, or service access are missing;
-- the same task's tests or CI still fail after three reasonable fix attempts; report the attempts, logs, and remaining failure;
+- the baseline build or tests fail before task 1, or the same task's tests or CI still fail after three fix attempts under `systematic-debugging`; report the attempts, logs, and remaining failure;
 - a step can only be completed by a human.
 
 Post the question as a comment on `#N` and repeat it in chat. Do not pause merely because a task ended, checks passed, another task is difficult, or an ordinary implementation decision is needed.
@@ -181,7 +185,7 @@ Refs #42
 - First line `Closes #N`, plus one `Closes #M` line per sub-issue.
 - `## Summary`: two or three sentences and the spec path.
 - `## Changes`: one row per completed task with its commit SHA and outcome, then one `Deviations:` line (departures from the approved spec or from one commit per task, or `None`) and the optional tasks not done.
-- `## Testing`: the CI run and the local commands with results, then one row per requirement mapping its criterion ids to the tests that show them. Name any criterion not shown and why. Skip withdrawn criteria. For a bugfix, the current-behavior row points at the regression test that failed before the fix.
+- `## Testing`: the CI run, the local commands with results, and the code review verdict, then one row per requirement mapping its criterion ids to the tests that show them. Name any criterion not shown and why. Skip withdrawn criteria. For a bugfix, the current-behavior row points at the regression test that failed before the fix.
 - Nothing else. No open questions, review checklists, or restated spec text.
 - Title: a conventional commit subject for the whole change, such as `feat(queue): add reading queue` or `fix(queue): match duplicate titles after case fold`.
 
@@ -189,7 +193,7 @@ After opening, confirm `closingIssuesReferences` on the PR includes `#N`.
 
 ## Never
 
-- Merge a pull request, enable auto-merge, or approve your own pull request.
+- Merge a pull request, merge the feat branch locally (even when another skill offers to), enable auto-merge, or approve your own pull request.
 - Push code to the default branch. Only spec and steering documents go there directly.
 - Create a spec branch or open a pull request for spec or steering documents.
 - Start implementation before the user approves the spec.
@@ -203,4 +207,5 @@ After opening, confirm `closingIssuesReferences` on the PR includes `#N`.
 - Issue `#N` has the spec comment, any open questions as comments, and an agent block that matches `tasks.md` and links the implementation PR.
 - Task 1 in `tasks.md` is the CI workflow, and the task DAG starts at it.
 - `feat/<N>-<slug>` has one commit per leaf task, plus documented CI repair commits if any, and every required task is checked in `tasks.md` and in the issue.
-- The implementation PR is open with `Closes #N`, Summary, Changes covering every completed task and its deviations, and Testing with CI status (failures included) and criterion coverage.
+- The code review ran before the PR, and its Critical and Important findings are fixed.
+- The implementation PR is open with `Closes #N`, Summary, Changes covering every completed task and its deviations, and Testing with CI status (failures included), the review verdict, and criterion coverage.

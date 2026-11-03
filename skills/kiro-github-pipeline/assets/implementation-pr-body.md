@@ -19,6 +19,7 @@ Optional tasks not done: [task numbers, or "None"].
 
 - CI: [workflow run URL] [passed or failed]
 - Local: `[build command]`, `[lint command]`, `[test command]` [result]
+- Review: [requesting-code-review verdict, and the findings fixed or "None"]
 
 | Requirement | Criteria | Shown by |
 | --- | --- | --- |
