@@ -46,13 +46,14 @@ Build the block from `tasks.md`. The awk reads checkbox lines at column 0 and ap
 
 ```bash
 TASKS=".kiro/specs/$SLUG/tasks.md"
-SPEC_PR=$(gh pr list --head "spec/$N-$SLUG" --state all --json number --jq '.[0].number // empty')
+STATUS="awaiting approval"   # or: approved, in progress
+SPEC_SHA=$(git log -1 --format=%h "origin/$BASE" -- ".kiro/specs/$SLUG")
 IMPL_PR=$(gh pr list --head "feat/$N-$SLUG" --state all --json number --jq '.[0].number // empty')
 {
   echo "## Spec"
   echo
-  echo "- Folder: \`.kiro/specs/$SLUG/\`"
-  echo "- Spec PR: ${SPEC_PR:+#}${SPEC_PR:-not opened}"
+  echo "- Folder: \`.kiro/specs/$SLUG/\` on \`$BASE\` at ${SPEC_SHA:-not pushed}"
+  echo "- Status: $STATUS"
   echo "- Implementation PR: ${IMPL_PR:+#}${IMPL_PR:-not opened}"
   echo
   echo "## Tasks"
@@ -100,36 +101,53 @@ gh api --method POST "repos/{owner}/{repo}/issues/$N/sub_issues" -F sub_issue_id
 
 `gh api` fills `{owner}` and `{repo}` from the current repository.
 
-## Spec branch and spec PR
+## Spec on the default branch
+
+Spec and steering documents are committed straight to the default branch. There is no spec branch and no spec PR.
 
 ```bash
 git fetch origin
-git switch -c "spec/$N-$SLUG" "origin/$BASE"
-# write and approve each file with kiro-sdd, committing after each one
+git switch "$BASE" && git pull --ff-only origin "$BASE"
+# write each file with kiro-sdd; commit and push it before asking for its approval
 git add ".kiro/specs/$SLUG/requirements.md"
 git commit -m "docs(spec): add requirements for $SLUG" -m "Refs #$N"
-# ... design.md, tasks.md, steering ...
-git push -u origin "spec/$N-$SLUG"
-gh pr create --base "$BASE" --head "spec/$N-$SLUG" \
-  --title "docs(spec): add $SLUG spec" --body-file "$TMP/spec-pr.md"
+git push origin "$BASE"
+# ... design.md, tasks.md; steering as docs(steering): ...
 ```
 
-Check the gate when resuming:
+If the push is rejected as a protected branch, stop and ask. Do not fall back to a branch and PR on your own.
+
+The spec comment and any open question go on the issue, never in a PR:
 
 ```bash
-gh pr list --head "spec/$N-$SLUG" --state all --json number,state,url
-gh pr view "spec/$N-$SLUG" --json state,mergedAt,reviewDecision,url
-gh pr view "spec/$N-$SLUG" --comments          # read review feedback
+gh issue comment "$N" --body-file "$TMP/spec-comment.md"   # from assets/spec-comment.md
+gh issue comment "$N" --body-file "$TMP/question.md"       # a question that comes up mid-phase
 ```
 
-`state` is `OPEN`, `CLOSED`, or `MERGED`. `reviewDecision` is `APPROVED`, `CHANGES_REQUESTED`, `REVIEW_REQUIRED`, or empty when no review is required.
+Check the gate when resuming. The agent block's `Status:` line records approval; comments since the spec comment hold any reply:
+
+```bash
+gh issue view "$N" --json state,body --jq '.state, (.body | capture("Status: (?<s>[^\n]*)").s)'
+gh issue view "$N" --comments
+git log --oneline "origin/$BASE" -- ".kiro/specs/$SLUG"
+```
+
+A spec revision found during implementation goes to the default branch too, then into the feat branch:
+
+```bash
+git switch "$BASE" && git pull --ff-only origin "$BASE"
+# edit the spec files
+git add ".kiro/specs/$SLUG"
+git commit -m "docs(spec): revise design for $SLUG" -m "Refs #$N" && git push origin "$BASE"
+git switch "feat/$N-$SLUG" && git merge "origin/$BASE"
+```
 
 ## Implementation branch
 
 ```bash
 git fetch origin
 git switch -c "feat/$N-$SLUG" "origin/$BASE"
-test -f ".kiro/specs/$SLUG/tasks.md"   # the merged spec must be on the base branch
+test -f ".kiro/specs/$SLUG/tasks.md"   # the approved spec must be on the base branch
 ```
 
 One commit per leaf task, with the box already checked in `tasks.md`:
@@ -154,20 +172,19 @@ A run can take a few seconds to appear after the push. If `RUN` is empty, list a
 
 ## Implementation PR
 
-Print the acceptance criteria as checklist lines to start the body. For `bugfix.md`, the same awk works because it uses the same `### Requirement N` headings:
+Print one coverage row per requirement for the Testing section. For `bugfix.md`, the same awk works because it uses the same `### Requirement N` headings:
 
 ```bash
 awk '
-  /^## / { r = ""; next }
-  /^### Requirement [0-9]+/ { r = $3; next }
-  r != "" && /^[0-9]+\. / {
-    n = $1; sub(/\.$/, "", n); t = $0; sub(/^[0-9]+\. /, "", t)
-    print "- [ ] " r "." n " " t ". Evidence:"
-  }
+  function flush() { if (r != "" && n) print "| " r " | " r ".1" (n > 1 ? "–" r "." n : "") " | |"; r = "" }
+  /^### Requirement [0-9]+/ { flush(); r = $3; n = 0; next }
+  /^## / { flush(); next }
+  r != "" && /^[0-9]+\. / { n++ }
+  END { flush() }
 ' ".kiro/specs/$SLUG/requirements.md"
 ```
 
-Then delete withdrawn criteria, add each test name after `Evidence:`, and check only the lines this PR proves.
+Fill in the tests that show each row, drop withdrawn ids, and list any criterion this PR does not show under `Not shown:`.
 
 ```bash
 git log --reverse --format='%h %s' "origin/$BASE..HEAD"   # rows for the Changes table

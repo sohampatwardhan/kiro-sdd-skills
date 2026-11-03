@@ -2,7 +2,7 @@ Closes #[N]
 
 ## Summary
 
-[Two or three sentences on what changed for the user. Spec: `.kiro/specs/[slug]/`, approved in #[spec PR].]
+[Two or three sentences on what changed for the user. Spec: `.kiro/specs/[slug]/`.]
 
 ## Changes
 
@@ -12,21 +12,18 @@ Closes #[N]
 | 2 | [sha] | [What the task changed] |
 | 3.1 | [sha] | [What the task changed] |
 
-Optional tasks not done: [task numbers and titles, or "None"].
-
-## Deviations
-
-[List every departure from the approved spec or the normal one-commit-per-task history, including the reason and effect, or "None".]
+Deviations: [Departures from the approved spec or from one commit per task, with the reason, or "None".]
+Optional tasks not done: [task numbers, or "None"].
 
 ## Testing
 
 - CI: [workflow run URL] [passed or failed]
 - Local: `[build command]`, `[lint command]`, `[test command]` [result]
+- Review: [requesting-code-review verdict, and the findings fixed or "None"]
 
-## Acceptance checklist
+| Requirement | Criteria | Shown by |
+| --- | --- | --- |
+| 1 | 1.1–1.4 | [test file and test names] |
+| 2 | 2.1–2.3 | [test file and test names] |
 
-One line per acceptance criterion in `.kiro/specs/[slug]/[requirements.md or bugfix.md]`. A checked line names the test or check in this pull request that shows it. An unchecked line says why.
-
-- [ ] 1.1 WHEN [event] THEN the system SHALL [response]. Evidence: [test file and test name]
-- [ ] 1.2 IF [precondition] THEN the system SHALL [response]. Evidence: [test file and test name]
-- [ ] 2.1 WHEN [event] THEN the system SHALL [response]. Evidence: [test file and test name]
+Not shown: [criterion ids and why, or "None"].

@@ -4,6 +4,12 @@
 
 [What this feature does, the approach, and why that approach won. Link requirements or bugfix criteria the design covers.]
 
+### Decisions
+
+| Decision | Why | Rejected |
+| --- | --- | --- |
+| [The call, or the assumption made instead of asking] | [One line: the repo, sibling, steering, or goal that settles it] | [Alternative] |
+
 ```mermaid
 ---
 config:

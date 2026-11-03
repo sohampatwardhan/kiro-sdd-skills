@@ -5,7 +5,7 @@ license: MIT
 compatibility: "Portable Agent Skills package. Writes Markdown with YAML front matter. Diagrams follow the kiro-mermaid skill."
 metadata:
   author: kiro-sdd-skills
-  version: "1.0.0"
+  version: "1.1.0"
 ---
 
 # Kiro steering
@@ -73,4 +73,6 @@ Each steering file includes at least one Mermaid flowchart that shows the rule t
 
 ## Maintaining steering
 
-Update steering when the stack, layout, or product boundary changes. Review file references after a move. Treat the edit like code: no secrets, one domain per file, names that say what they govern (`api-standards.md`, not `notes.md`).
+Update steering when the stack, layout, or product boundary changes. Review file references after a move. Keep each file short: what an agent would get wrong without it, not a tour of the repo. No secrets, one domain per file, names that say what they govern (`api-standards.md`, not `notes.md`).
+
+Steering is not code. In a GitHub project, commit it as `docs(steering): <what changed>` and push it straight to the default branch, never through a branch or pull request (`kiro-github-pipeline`).

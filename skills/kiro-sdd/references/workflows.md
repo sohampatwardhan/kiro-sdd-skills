@@ -18,7 +18,7 @@ Kiro's spec surfaces (IDE, CLI, and Web) share one file layout. Confirmed from t
 
 1. Write `requirements.md` with the `kiro-requirements` skill. Generate a complete first draft from the idea. Do not interview the user one question at a time before that draft.
 2. Ask: "Do the requirements look good? If so, we can move on to the design."
-3. On request, or when the spec is large, ambiguous, or compliance-sensitive, analyze before design:
+3. On request, or when the spec is large, ambiguous, or compliance-sensitive, analyze before design. Fix what you find in the file instead of listing it for the user:
    - Contradictions between acceptance criteria
    - Criteria that name no observable outcome
    - Missing negative cases (empty input, unauthorized caller, duplicate, already-in-state)
@@ -43,18 +43,19 @@ If generated requirements miss the user's intent, go back to the design. Do not 
 
 ## Quick Spec
 
-The user must opt in ("quick spec", "skip the gates", "one pass"). Write requirements, design, and tasks without stopping. Tell them the gates were skipped. Both workflows produce the same three filenames. The difference is review, not shape.
+The user must opt in ("quick spec", "skip the gates", "one pass"). Write requirements, design, and tasks without stopping. Tell them the gates were skipped, and give one short summary of what is being built, the decisions made, and the risks. Both workflows produce the same three filenames. The difference is review, not shape.
 
 ## Bugfix
 
 Use a bugfix spec when the defect is in a critical path, the root cause is unclear, earlier fixes caused regressions, or the fix must be documented. A one-line typo does not need one.
 
-1. Write `bugfix.md` with current, expected, and unchanged behavior.
-2. Design records root cause, the smallest fix, and three test properties: the bug reproduces, the fix corrects it, and unchanged behavior still holds.
-3. Tasks implement that fix and those tests. No drive-by refactors.
+1. Reproduce the defect and find its root cause with `systematic-debugging` phases 1 to 3 (see `superpowers.md`). Investigate only. Do not fix it yet.
+2. Write `bugfix.md` with current, expected, and unchanged behavior.
+3. Design records root cause, the smallest fix, and three test properties: the bug reproduces, the fix corrects it, and unchanged behavior still holds.
+4. Tasks implement that fix and those tests. No drive-by refactors.
 
 Kiro generates property-based tests for these properties in the IDE. Other surfaces still get the tasks; do not claim a PBT runner exists where the project has none.
 
 ## Analyze, then stop
 
-After a gated phase, stop. Do not "helpfully" draft the next file in the same turn unless the user already approved or asked for Quick Spec.
+After a gated phase, stop. In the GitHub pipeline, push the file to the default branch first. Do not "helpfully" draft the next file in the same turn unless the user already approved or asked for Quick Spec.

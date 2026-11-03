@@ -32,3 +32,5 @@ When asked to sync:
 ## Partial edits
 
 A request to "add password reset to the spec" is an iteration, not a new workflow. Stay in the existing order: change the upstream artifact first (requirements, or design if the spec was Design-First), get approval when gates are in force, then propagate.
+
+In the GitHub pipeline, each revision is another direct `docs(spec): revise <file> for <slug>` commit to the default branch, never a branch or pull request. Re-sync the issue block when `tasks.md` changes.

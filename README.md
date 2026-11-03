@@ -50,7 +50,7 @@ flowchart TB
 | `kiro-steering` | You are writing `.kiro/steering/` files and inclusion modes |
 | `kiro-hooks` | You are writing `.kiro/hooks/*.json` hooks |
 | `kiro-mermaid` | You are adding diagrams or checking that they render |
-| `kiro-github-pipeline` | The repo is on GitHub: the idea lives in an issue, the spec goes up as a spec PR that a human merges, approved tasks run continuously with one conventional commit per task, tasks stay in sync with the issue, and one implementation PR closes the issue. Uses `git` and `gh` only |
+| `kiro-github-pipeline` | The repo is on GitHub: the idea and any open questions live in the issue, spec and steering docs are committed straight to the default branch and approved by the user, approved tasks run continuously with one conventional commit per task, tasks stay in sync with the issue, and one implementation PR closes the issue. PRs are only for implementation. Uses `git` and `gh` only |
 
 Copy every folder you want. `kiro-sdd` points at the others, so install the set together.
 
@@ -91,9 +91,43 @@ docs/
 
 Feature requirements use numbered user stories and EARS lines (`WHEN ... THEN the system SHALL ...`). Tasks are checkboxes, and task 1 creates or updates the CI workflow. A task that does work ends with `_Requirements: 1.2, 3.1_`. `tasks.md` also contains a Mermaid DAG: phases as subgraphs, parallel groups nested inside them, arrows for depends-on, and `classDef` styles for the critical path, parallel work, and blocked work.
 
-Requirements, design, and tasks keep their human approval gates. After approval, implementation runs every required task in DAG order without routine stops, updates `tasks.md` and the GitHub issue together, and opens one implementation PR whose body summarizes every task and any deviations. One-task-at-a-time step mode is used only when the user explicitly requests it. The agent pauses only for a material ambiguity or spec change, a destructive or out-of-scope action, missing access, three failed fix attempts on the same task, or a human-only step.
+Specs are sized to the change: grouped criteria, tables over prose, each fact stated once, no ceremony checklists, and as many diagrams as the structure needs. The agent makes routine calls itself and records them as Decisions in `design.md`. It asks at most one or two questions, only where a wrong guess would be costly, and on GitHub those go on the issue.
+
+Requirements, design, and tasks keep their human approval gates. On GitHub, each spec file is pushed straight to the default branch before its gate, with a short summary of what is being built, the decisions, and the risks. After approval, implementation runs every required task test-first in DAG order without routine stops and updates `tasks.md` and the GitHub issue together. It gets one code review of the whole branch, then opens one implementation PR with Summary, Changes, and Testing. One-task-at-a-time step mode is used only when the user explicitly requests it. The agent pauses only for a material ambiguity or spec change, a destructive or out-of-scope action, missing access, three failed fix attempts on the same task, or a human-only step.
 
 Steering front matter supports `always`, `fileMatch` with `fileMatchPattern`, `manual`, and `auto`. Hooks use schema `v1` and PascalCase triggers such as `PostFileSave` and `UserPromptSubmit`. [`skills/kiro-hooks/assets/kiro-hooks.v1.schema.json`](skills/kiro-hooks/assets/kiro-hooks.v1.schema.json) is a JSON Schema for hook files, written from Kiro's field reference because Kiro does not publish one.
+
+## Superpowers
+
+Some steps are done better by [obra/superpowers](https://github.com/obra/superpowers) skills, so the kiro skills call those skills there instead of carrying their own version:
+
+| Step | Superpowers skill | Called from |
+| --- | --- | --- |
+| The idea is too fuzzy to draft | `brainstorming` | `kiro-sdd`, `kiro-requirements` |
+| Bugfix root cause; a failing test, build, or CI run | `systematic-debugging` | `kiro-sdd`, `kiro-design`, `kiro-github-pipeline` |
+| Each task that changes behavior | `test-driven-development` | `kiro-sdd`, `kiro-tasks`, `kiro-github-pipeline` |
+| After the last task, before the implementation PR | `requesting-code-review` | `kiro-sdd`, `kiro-github-pipeline` |
+| Review findings or PR comments | `receiving-code-review` | `kiro-sdd`, `kiro-github-pipeline` |
+| The checkout holds other work when implementation starts | `using-git-worktrees` | `kiro-github-pipeline` |
+
+Requirements, design, tasks, the execution loop, verification, and finishing the branch stay with the kiro skills, because their formats and rules fit Kiro specs better. `writing-plans`, `executing-plans`, `subagent-driven-development`, `dispatching-parallel-agents`, `finishing-a-development-branch`, and `verification-before-completion` are not called on a Kiro spec. [`skills/kiro-sdd/references/superpowers.md`](skills/kiro-sdd/references/superpowers.md) has the scored comparison for each step, the kiro rules that still apply inside each delegated skill, and the fallbacks.
+
+Before calling one, the agent checks that it is installed, and installs it if it is missing:
+
+```bash
+sh skills/kiro-sdd/scripts/ensure-superpowers.sh test-driven-development systematic-debugging
+# installs anything missing with:
+#   npx -y skills add obra/superpowers -g -y --skill <skill> ...
+# prints "<skill> <path to SKILL.md>", or "<skill> MISSING" and exit 1
+```
+
+The script looks for `<skill>/SKILL.md` in project and global `.agents`, `.claude`, `.kiro`, and `.cursor` skill folders, in `~/.codex/skills`, and in the Claude Code plugin cache. A skill that is already there is never reinstalled. If the install cannot run (no Node.js, no network, or policy), the agent says so and follows the kiro fallback for that step. To try the install without touching your real setup:
+
+```bash
+HOME=$(mktemp -d) CI=true sh skills/kiro-sdd/scripts/ensure-superpowers.sh test-driven-development
+```
+
+## Example
 
 A complete specimen is in [`examples/reading-queue`](examples/reading-queue/README.md): a personal reading queue, plus a small bugfix spec for duplicate titles.
 
@@ -171,7 +205,7 @@ Confirmed from those docs:
 - Specs: [kiro.dev/docs/specs](https://kiro.dev/docs/specs/), [feature specs](https://kiro.dev/docs/specs/feature-specs/), [bugfix specs](https://kiro.dev/docs/specs/bugfix-specs/), [best practices](https://kiro.dev/docs/specs/best-practices/)
 - Steering: [kiro.dev/docs/steering](https://kiro.dev/docs/steering/)
 - Hooks: [kiro.dev/docs/hooks](https://kiro.dev/docs/hooks/), [trigger types](https://kiro.dev/docs/hooks/types/), [IDE 1.0 migration](https://kiro.dev/docs/ide/whats-new-v1/hooks/). The bundled JSON Schema is derived from those pages. It is not an official Kiro file.
-- GitHub CLI: [cli.github.com/manual](https://cli.github.com/manual/) for `gh issue create`, `gh issue edit` (including `--parent` and `--add-sub-issue`), `gh pr create`, `gh pr view`, `gh pr checks`, and `gh run list`, checked through Context7 on 2026-11-02. Action majors in the CI skeleton (`actions/checkout@v6`, `actions/setup-node@v6`) were checked the same day.
+- GitHub CLI: [cli.github.com/manual](https://cli.github.com/manual/) for `gh issue create`, `gh issue edit` (including `--parent` and `--add-sub-issue`), `gh issue comment`, `gh pr create`, `gh pr view`, `gh pr checks`, and `gh run list`, checked through Context7 on 2026-11-02. Action majors in the CI skeleton (`actions/checkout@v6`, `actions/setup-node@v6`) were checked the same day.
 - Skills: [kiro.dev/docs/skills](https://kiro.dev/docs/skills/) and [agentskills.io/specification](https://agentskills.io/specification)
 - Diagrams: [Mermaid flowchart](https://mermaid.js.org/syntax/flowchart.html), [state](https://mermaid.js.org/syntax/stateDiagram.html), [layouts](https://mermaid.js.org/config/layouts.html), [sequence](https://mermaid.js.org/syntax/sequenceDiagram.html), [class](https://mermaid.js.org/syntax/classDiagram.html), [ER](https://mermaid.js.org/syntax/entityRelationshipDiagram.html), and mermaid-cli. Every flowchart and state diagram sets `config.layout` to `elk` in YAML front matter. Other diagram types do not. Layout was checked against the layouts page on 2026-10-31.
 

@@ -1,18 +1,20 @@
 ---
 name: kiro-github-pipeline
-description: "Run a Kiro spec through GitHub with git and the gh CLI. A GitHub issue holds the idea, a spec pull request on spec/<issue>-<slug> is the approval gate, the issue mirrors tasks.md as a checklist or sub-issues, CI is task 1, and one implementation pull request on feat/<issue>-<slug> closes the issue. Use when the repository is hosted on GitHub, when the user gives an issue number, or when they ask for a spec PR, an implementation PR, or issue tracking for a spec. Never merges. A human merges."
+description: "Run a Kiro spec through GitHub with git and the gh CLI. A GitHub issue holds the idea and any open questions, spec and steering documents are committed straight to the default branch and approved by the user, the issue mirrors tasks.md as a checklist or sub-issues, CI is task 1, and one implementation pull request on feat/<issue>-<slug> closes the issue. Pull requests are only for implementation. Use when the repository is hosted on GitHub, when the user gives an issue number, or when they ask for issue tracking for a spec or an implementation PR. Never merges. A human merges."
 license: MIT
 compatibility: "Portable Agent Skills package. Needs git and an authenticated GitHub CLI (gh). Sub-issue flags need a gh release that lists --parent and --add-sub-issue; references/gh-recipes.md has a gh api fallback. Writes Markdown and YAML."
 metadata:
   author: kiro-sdd-skills
-  version: "1.0.0"
+  version: "1.2.0"
 ---
 
 # Kiro GitHub pipeline
 
-Use this skill to carry a Kiro spec from a GitHub issue to an implementation pull request that a human merges. `kiro-sdd` still chooses the workflow and runs the phase gates. `kiro-requirements`, `kiro-design`, `kiro-tasks`, and `kiro-steering` still own the file formats. This skill owns the issue, the branches, the commits, the pull requests, and keeping them in sync. Command recipes are in `references/gh-recipes.md`.
+Use this skill to carry a Kiro spec from a GitHub issue to an implementation pull request that a human merges. `kiro-sdd` still chooses the workflow, runs the phase gates, and sets the proportion and decision rules. `kiro-requirements`, `kiro-design`, `kiro-tasks`, and `kiro-steering` still own the file formats. This skill owns the issue, the commits, the implementation branch and pull request, and keeping them in sync. Command recipes are in `references/gh-recipes.md`.
 
-Everything here runs through `git` and `gh`. Any agent that can run shell commands can follow it.
+Spec documents (`requirements.md` or `bugfix.md`, `design.md`, `tasks.md`) and steering files are not code. They are committed and pushed straight to the default branch: no spec branch, no spec pull request. Pull requests are only for implementation work that may change code.
+
+Everything here runs through `git` and `gh`. Any agent that can run shell commands can follow it. Steps that name a superpowers skill (`brainstorming`, `test-driven-development`, `systematic-debugging`, `requesting-code-review`, `receiving-code-review`, `using-git-worktrees`) follow `../kiro-sdd/references/superpowers.md`, including its install check and fallbacks.
 
 ## Pipeline
 
@@ -25,76 +27,81 @@ flowchart TB
   subgraph issueStage [1 Issue]
     issue["gh issue create or gh issue view"]
   end
-  subgraph specStage [2 Spec PR on spec branch]
+  subgraph specStage [2 Spec on the default branch]
     spec["kiro-sdd writes requirements or bugfix, design, tasks"]
-    specPr["gh pr create with Refs to the issue"]
-    sync1["Mirror tasks.md into the issue"]
+    push["docs(spec) commits pushed to the default branch"]
+    sync1["Mirror tasks.md into the issue, post the spec comment"]
   end
-  gate{"Human merges the spec PR"}
+  gate{"User approves the spec"}
   subgraph implStage [3 Implementation on feat branch]
     ci["Task 1 sets up CI"]
     work["One conventional commit per task"]
     sync2["Check the task in tasks.md and the issue"]
   end
+  review["requesting-code-review, then fix findings"]
   implPr["gh pr create with Closes for the issue"]
   human["Human reviews and merges"]
   issue --> spec
-  spec --> specPr
-  specPr --> sync1
+  spec --> push
+  push --> sync1
   sync1 --> gate
   gate -->|"changes requested"| spec
-  gate -->|"merged"| ci
+  gate -->|"approved"| ci
   ci --> sync2
   work --> sync2
   sync2 -->|"next task"| work
-  sync2 -->|"all required tasks done"| implPr
+  sync2 -->|"all required tasks done"| review
+  review --> implPr
   implPr --> human
 ```
 
-| Stage | Branch | GitHub object | Link keyword | Moves forward when |
+| Stage | Where | GitHub object | Link keyword | Moves forward when |
 | --- | --- | --- | --- | --- |
 | 1 Issue | none | issue `#N`, body from `assets/issue-template.md` | none | the issue exists |
-| 2 Spec | `spec/<N>-<slug>` | spec PR, body from `assets/spec-pr-body.md` | `Refs #N` | a human merges it |
-| 3 Task sync | spec branch, then feat branch | the agent block in issue `#N`, optionally sub-issues | task numbers | every task commit |
+| 2 Spec | default branch, direct commits | one comment on `#N` from `assets/spec-comment.md` | `Refs #N` in each commit | the user approves |
+| 3 Task sync | default branch, then feat branch | the agent block in issue `#N`, optionally sub-issues | task numbers | every task commit |
 | 4 Implementation | `feat/<N>-<slug>` | one implementation PR, body from `assets/implementation-pr-body.md` | `Closes #N` | a human merges it |
 
-`<N>` is the issue number. `<slug>` is the spec folder name under `.kiro/specs/`. Use the same slug in both branch names. Bugfix specs use the same `feat/` prefix so every spec has one branch shape.
+`<N>` is the issue number. `<slug>` is the spec folder name under `.kiro/specs/`. Bugfix specs use the same `feat/` prefix so every implementation has one branch shape.
 
 ## Before you start
 
 1. `gh auth status` succeeds and `gh repo view --json nameWithOwner` names the repository. If either fails, stop and say which. Do not switch to the web UI on your own.
 2. The working tree is clean. Read the default branch name from `gh repo view`. Do not assume `main`.
-3. Read `.github/` for an issue template, a pull request template, workflows, and `CONTRIBUTING.md`. Project conventions win over this skill's assets when they conflict. Keep the link keywords and the acceptance checklist either way.
+3. Read `.github/` for an issue template, a pull request template, workflows, and `CONTRIBUTING.md`. Project conventions win over this skill's assets when they conflict. Keep the link keywords either way.
 
 ## Stage 1: Issue
 
-- If the user gave an issue number, read it with `gh issue view`. Its body is the idea that `kiro-sdd` starts from. Do not rewrite the human's text. Add only the agent block described in Stage 3.
+- If the user gave an issue number, read it with `gh issue view`, comments included. Its body is the idea that `kiro-sdd` starts from. Do not rewrite the human's text. Add only the agent block described in Stage 3.
 - Otherwise fill `assets/issue-template.md` into a temporary body file, strip its front matter, and run `gh issue create --title ... --body-file ...`. Add a label only if `gh label list` shows it exists.
+- If `kiro-sdd` ran `brainstorming` because the idea was fuzzy, post the agreed outcome (intent, goals and non-goals, chosen approach) as one comment on the issue before the first spec commit.
 - The issue kind picks the workflow. A bug goes to the Bugfix workflow. A feature lets `kiro-sdd` choose Requirements-First or Design-First, and a stated architecture or hard constraint in the issue points to Design-First.
-- Copy the template to `.github/ISSUE_TEMPLATE/kiro-spec.md` only when the user asks for it or the repository has no issue template. That copy ships in the spec PR.
+- Copy the template to `.github/ISSUE_TEMPLATE/kiro-spec.md` only when the user asks for it or the repository has no issue template. Commit it to the default branch with the spec.
 
-## Stage 2: Spec PR, the approval gate
+## Stage 2: Spec on the default branch, the approval gate
 
-1. Fetch, then create `spec/<N>-<slug>` from the remote default branch.
-2. Run `kiro-sdd`. Its phase gates still apply in the conversation unless the user asked for a Quick Spec. Commit each artifact as it is approved, one conventional commit each:
+1. Fetch, switch to the default branch, and fast-forward it to the remote.
+2. Run `kiro-sdd`. Its phase gates still apply unless the user asked for a Quick Spec. Commit each artifact and push it to the default branch before asking for its approval, so the user reviews it on GitHub. One conventional commit each, body `Refs #N`:
    - `docs(spec): add requirements for <slug>` or `docs(spec): add bugfix analysis for <slug>`
    - `docs(spec): add design for <slug>`
    - `docs(spec): add task plan for <slug>`
    - `docs(steering): <what changed>` for steering files the spec needs
-3. Write the agent block into the issue (Stage 3).
-4. Push the branch and open the PR against the default branch with `--body-file` from `assets/spec-pr-body.md`. The body says `Refs #N`. Never write `Closes`, `Fixes`, or `Resolves` in a spec PR. GitHub would close the issue when the spec merges.
-5. Put the spec PR number in the agent block, then stop. Give the user the PR URL and say that implementation starts after a human merges it. Do not start Stage 4 in the same turn.
+3. Sync the agent block (Stage 3) with status `awaiting approval`.
+4. When the whole spec is on the default branch (after `tasks.md`, or after the single Quick Spec pass), post one comment on `#N` from `assets/spec-comment.md`. Then stop. In chat, give the same short summary (what is being built, the key decisions, anything risky) with the comment URL, and ask for approval. Do not start Stage 4 in the same turn.
+5. If the push is rejected, for example by branch protection, stop and tell the user. Do not create a branch or a pull request as a workaround unless they say so.
 
-Review feedback lands as new commits on the same branch (`docs(spec): revise design for <slug>`). Re-sync the agent block whenever `tasks.md` changes. Do not force-push over commits someone has reviewed unless the human asks.
+Open questions go on the issue, never in a commit message or a pull request body. Most should not exist: `kiro-sdd` makes the call and records it in `design.md`. The one or two that survive go under **Questions** in the spec comment, or in their own `gh issue comment` if they come up mid-phase. Repeat them in chat with your recommended answer.
 
-When you resume, find the spec PR by its head branch and read `state`, `mergedAt`, and `reviewDecision`:
+Revisions are more direct commits to the default branch (`docs(spec): revise design for <slug>`). Re-sync the agent block whenever `tasks.md` changes. Never force-push the default branch.
 
-| State | Action |
+Approval is the user's reply in chat, or a human's approving comment on the issue. Record it by setting the agent block status to `approved`. When you resume, read the status and the issue comments:
+
+| Status | Action |
 | --- | --- |
-| `MERGED` | Go to Stage 4 |
-| `OPEN`, approved | Ask the human to merge. Build on the spec branch only if they explicitly say to, and say so in the implementation PR body |
-| `OPEN`, not approved | Address review comments, or wait |
-| `CLOSED` without merge | Stop and ask. The spec was rejected |
+| `awaiting approval` | Read comments since the spec comment. Approval: set `approved` and go to Stage 4. Change requests: revise. Nothing new: remind the user in one line and wait |
+| `approved` | Go to Stage 4 |
+| `in progress` | Continue Stage 4 from the first unchecked task in DAG order |
+| Issue closed without the work | Stop and ask |
 
 ## Stage 3: Keep the issue in sync with tasks.md
 
@@ -104,8 +111,8 @@ The issue body carries one agent-maintained block between markers. Regenerate th
 <!-- kiro-pipeline:start -->
 ## Spec
 
-- Folder: `.kiro/specs/reading-queue/`
-- Spec PR: #12
+- Folder: `.kiro/specs/reading-queue/` on `main` at a1b2c3d
+- Status: in progress
 - Implementation PR: not opened
 
 ## Tasks
@@ -117,10 +124,11 @@ The issue body carries one agent-maintained block between markers. Regenerate th
 <!-- kiro-pipeline:end -->
 ```
 
+- Status is `awaiting approval`, `approved`, or `in progress`. The commit is the latest spec commit on the default branch.
 - One line per checkbox in `tasks.md`, grouping parents included, with the same number, title, order, and checked state. Optional tasks keep `(optional)`.
 - `tasks.md` is the source. Change it first, then regenerate the block. Never check an issue line that is unchecked in `tasks.md`.
 - Leave every byte outside the markers alone. If the markers are missing, append them at the end of the body.
-- Sync when the spec PR opens, after any spec revision that changes `tasks.md`, after each task commit is pushed, and when the implementation PR opens.
+- Sync when the spec lands on the default branch, after any revision that changes `tasks.md`, after each task commit is pushed, and when the implementation PR opens.
 
 ### Sub-issues
 
@@ -130,17 +138,18 @@ Record the link in `tasks.md` as a detail bullet `- Sub-issue: #123`, placed bef
 
 ## Stage 4: Implementation
 
-1. After the spec PR merges, fetch, then create `feat/<N>-<slug>` from the remote default branch.
-2. Task 1 is the CI task (`kiro-tasks` puts it first). Start from `assets/ci.yml`. Take build, lint, and test commands from `.kiro/steering/tech.md`, the design, or the project manifest. Do not invent a tool the project does not use. If a command is missing, task 1's detail bullets name the one it adds. If an older `tasks.md` has no CI task, append one with the next free number as `kiro-tasks` describes. Commit that change as `docs(spec): add ci task to <slug> plan` on the feat branch, then run it first.
+1. After approval, fetch, then create `feat/<N>-<slug>` from the remote default branch, which already holds the approved spec. If the checkout holds other work, create the branch in a worktree with `using-git-worktrees` and keep the worktree until the PR merges. Run the build and tests once before task 1. If they already fail, pause and report it, because CI could not tell your failures from existing ones. Set the status to `in progress`.
+2. Task 1 is the CI task (`kiro-tasks` puts it first). Start from `assets/ci.yml`. Take build, lint, and test commands from `.kiro/steering/tech.md`, the design, or the project manifest. Do not invent a tool the project does not use. If a command is missing, task 1's detail bullets name the one it adds. If an older `tasks.md` has no CI task, append one with the next free number as `kiro-tasks` describes. Commit it to the default branch as `docs(spec): add ci task to <slug> plan` before creating the feat branch, then run it first.
 3. Execute all required leaf tasks continuously in a topological order of the DAG. Tasks in the same parallel group or wave may run in any order after their dependencies are checked. Do not stop for routine review between tasks. For each leaf task, meaning a sub-task or a major task without children:
-   1. Implement it. Run the project's build, lint, and test commands locally.
-   2. Check its box in `tasks.md` in the same commit. Check a grouping parent in the commit of its last child.
+   1. Implement it test-first with `test-driven-development` (the approved plan exempts task 1 and config-only tasks). Then run the project's build, lint, and test commands locally.
+   2. Check its box in `tasks.md` in the same commit, only on output from a run made after the task's last change. Check a grouping parent in the commit of its last child. Checkbox ticks are the only spec edits that travel on the feat branch.
    3. Commit once, using the format below, then push. One conventional commit per task is the normal history.
    4. Sync the issue block from the checked state in `tasks.md`.
-   5. Read the CI run for that push. The checked box records locally verified implementation, but the task does not unlock downstream DAG tasks until CI is green. If CI fails, keep working on the same task and make at most three reasonable fix attempts before asking the human. Do not start the next task while CI is red. Do not rewrite pushed history; if a CI-only repair therefore needs an additional commit, keep it scoped to the same task and record the extra commit as a deviation in the implementation PR.
+   5. Read the CI run for that push. The checked box records locally verified implementation, but the task does not unlock downstream DAG tasks until CI is green. If CI fails, stay on the same task and debug it with `systematic-debugging`. After three failed fixes, pause. Do not start the next task while CI is red. Do not rewrite pushed history; if a CI-only repair therefore needs an additional commit, keep it scoped to the same task and record it as a deviation in the implementation PR.
 4. Skip optional tasks unless the user asked for them. List skipped optional tasks in the PR body.
-5. Open one implementation PR for the spec against the default branch, with `--body-file` from `assets/implementation-pr-body.md`. Its Changes table summarizes every completed task and its Deviations section records every departure from the approved spec or one-commit-per-task history, including "None" when there were no deviations. Then add its number to the issue block.
-6. Wait for checks to finish and report the result. Stop. A human reviews and merges.
+5. Run `requesting-code-review` once on `$(git merge-base origin/<default> HEAD)..HEAD`, with the three spec files as the requirements. Fix Critical and Important findings with `receiving-code-review`, in commits scoped to the task they touch, and list those commits under Deviations.
+6. Open one implementation PR for the spec against the default branch, with `--body-file` from `assets/implementation-pr-body.md`. Then add its number to the issue block.
+7. Wait for checks to finish and report the result. Stop. A human reviews and merges. When the user asks you to address review comments, use `receiving-code-review`. Reply in each review thread, and put any question that would change the spec on the issue.
 
 Step mode is optional. Execute one task and return for review only when the user explicitly asks for one-task-at-a-time execution.
 
@@ -148,14 +157,14 @@ Step mode is optional. Execute one task and return for review only when the user
 
 Pause and ask the human only when:
 
-- a requirement or design ambiguity would materially change the result;
-- the approved plan is materially wrong, so `tasks.md`, `design.md`, or the behavior file must change: update the affected spec documents, re-sync the issue, and pause for re-approval before continuing;
+- a requirement or design ambiguity would materially change the result, and the repo, docs, and the user's stated goals do not settle it;
+- the approved plan is materially wrong: commit the spec revision to the default branch, merge the default branch into the feat branch, re-sync the issue, and pause for re-approval before continuing;
 - the next action is destructive, irreversible, or outside the approved scope;
 - required credentials, secrets, permissions, or service access are missing;
-- the same task's tests or CI still fail after three reasonable fix attempts; report the attempts, logs, and remaining failure;
+- the baseline build or tests fail before task 1, or the same task's tests or CI still fail after three fix attempts under `systematic-debugging`; report the attempts, logs, and remaining failure;
 - a step can only be completed by a human.
 
-Do not pause merely because a task ended, checks passed, another task is difficult, or an ordinary implementation decision is needed.
+Post the question as a comment on `#N` and repeat it in chat. Do not pause merely because a task ended, checks passed, another task is difficult, or an ordinary implementation decision is needed.
 
 Commit format:
 
@@ -174,25 +183,29 @@ Refs #42
 ### Implementation PR body
 
 - First line `Closes #N`, plus one `Closes #M` line per sub-issue.
-- `## Summary`, `## Changes` (one row per completed task with its commit SHA and outcome), `## Deviations` (every departure from the approved spec or normal one-commit-per-task history, or `None`), and `## Testing` (the CI run and the local commands with results).
-- `## Acceptance checklist`: one line per acceptance criterion id in `requirements.md` or `bugfix.md`, in document order, quoting the EARS text and naming the test or check that shows it. Check a line only when that evidence is in this PR and passed. Leave a line unchecked with a reason when it is not shown. Skip withdrawn criteria. For a bugfix, the current-behavior lines point at the regression test that failed before the fix.
+- `## Summary`: two or three sentences and the spec path.
+- `## Changes`: one row per completed task with its commit SHA and outcome, then one `Deviations:` line (departures from the approved spec or from one commit per task, or `None`) and the optional tasks not done.
+- `## Testing`: the CI run, the local commands with results, and the code review verdict, then one row per requirement mapping its criterion ids to the tests that show them. Name any criterion not shown and why. Skip withdrawn criteria. For a bugfix, the current-behavior row points at the regression test that failed before the fix.
+- Nothing else. No open questions, review checklists, or restated spec text.
 - Title: a conventional commit subject for the whole change, such as `feat(queue): add reading queue` or `fix(queue): match duplicate titles after case fold`.
 
 After opening, confirm `closingIssuesReferences` on the PR includes `#N`.
 
 ## Never
 
-- Merge a pull request, enable auto-merge, or approve your own pull request.
-- Push to the default branch.
-- Start implementation before the spec PR is merged, unless the human explicitly said to build on the spec branch.
-- Put a closing keyword in a spec PR or a commit message.
+- Merge a pull request, merge the feat branch locally (even when another skill offers to), enable auto-merge, or approve your own pull request.
+- Push code to the default branch. Only spec and steering documents go there directly.
+- Create a spec branch or open a pull request for spec or steering documents.
+- Start implementation before the user approves the spec.
+- Put a closing keyword in a commit message, or an open question in a pull request body or commit message.
 - Close the parent issue or a sub-issue by hand.
-- Force-push over commits a human has reviewed.
+- Force-push the default branch, or over commits a human has reviewed.
 
 ## Definition of done
 
-- Issue `#N` links the spec PR and the implementation PR, and its agent block matches `tasks.md` exactly.
-- The spec PR says `Refs #N` and was merged by a human.
+- The spec is on the default branch in `docs(spec)` commits that say `Refs #N`, and the user approved it.
+- Issue `#N` has the spec comment, any open questions as comments, and an agent block that matches `tasks.md` and links the implementation PR.
 - Task 1 in `tasks.md` is the CI workflow, and the task DAG starts at it.
 - `feat/<N>-<slug>` has one commit per leaf task, plus documented CI repair commits if any, and every required task is checked in `tasks.md` and in the issue.
-- The implementation PR is open with `Closes #N`, Summary, Changes covering every completed task, Deviations, Testing, and an acceptance checklist that covers every criterion id that is not withdrawn. CI status is reported, including failures.
+- The code review ran before the PR, and its Critical and Important findings are fixed.
+- The implementation PR is open with `Closes #N`, Summary, Changes covering every completed task and its deviations, and Testing with CI status (failures included), the review verdict, and criterion coverage.

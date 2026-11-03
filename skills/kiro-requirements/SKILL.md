@@ -5,7 +5,7 @@ license: MIT
 compatibility: "Portable Agent Skills package. Writes Markdown. Diagrams follow the kiro-mermaid skill."
 metadata:
   author: kiro-sdd-skills
-  version: "1.0.0"
+  version: "1.2.0"
 ---
 
 # Kiro requirements and bugfix analysis
@@ -43,18 +43,19 @@ Follow `assets/requirements.md`. Required shape, which Kiro's spec flow expects:
 
 Rules that keep later phases traceable:
 
-- One user story per requirement. Put related criteria under it instead of splitting every sentence into a new requirement.
+- One user story per requirement, one requirement per user-visible capability. Put related criteria under it instead of splitting every sentence, tool, endpoint, or flag into a new requirement.
+- Size the file to the change (`kiro-sdd`, "Proportion and decisions"). Write the criteria a test would check, not every restatement of them. A long capability list or parity matrix is one table, not a requirement per row.
 - Number requirements `1`, `2`, `3` and criteria `1.`, `2.`, `3.` under each. Criterion 2 of Requirement 1 is `1.2`. Tasks cite these ids. Do not invent `US-001` or `FR-001` as the address.
 - Every criterion is one EARS sentence. Patterns and examples are in `references/ears.md`.
 - Use SHALL for mandatory behavior. Use SHOULD only for non-mandatory behavior, and do not let tasks treat SHOULD as a ship blocker unless the user says so.
 - Cover the unhappy paths: invalid input, unauthorized caller, empty state, conflict, and "already in the desired state".
 - Name observable outcomes (what is stored, returned, or left unchanged), not implementation steps.
 - Keep domain words identical to the words you will use in `design.md`.
-- First draft is complete. Do not stall on a questionnaire before writing the file. Ask for approval after the file exists.
+- First draft is complete. Do not stall on a questionnaire before writing the file. Make scope calls yourself (what is out, what is deferred) and state each in one line in the Introduction. Technical calls go to `design.md` Decisions. Ask for approval after the file exists. When the idea is too fuzzy to draft at all, `kiro-sdd` runs superpowers `brainstorming` first. Draft from its outcome and do not ask its questions again.
 
 ## Bugfix analysis
 
-Follow `assets/bugfix.md`. Kiro uses three sections instead of user stories:
+Follow `assets/bugfix.md`. Write Current behavior from a reproduction, not from the report alone (`systematic-debugging` phase 1; see `../kiro-sdd/references/superpowers.md`). Kiro uses three sections instead of user stories:
 
 - Current behavior (defect): `WHEN [condition] THEN the system [incorrect behavior]`
 - Expected behavior: `WHEN [condition] THEN the system SHALL [correct behavior]`
