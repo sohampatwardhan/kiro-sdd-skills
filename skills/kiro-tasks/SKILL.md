@@ -5,7 +5,7 @@ license: MIT
 compatibility: "Portable Agent Skills package. Writes Markdown. The task DAG follows the kiro-mermaid skill."
 metadata:
   author: kiro-sdd-skills
-  version: "1.0.0"
+  version: "1.1.0"
 ---
 
 # Kiro tasks
@@ -17,6 +17,8 @@ Write `.kiro/specs/<feature-name>/tasks.md` only after design and the behavior f
 Convert the design into coding steps for an agent that already has the spec open. Each task builds on earlier tasks and ends with the pieces wired together.
 
 Include only work that writes, modifies, or tests code: types, logic, persistence, API surface, and tests. Do not include deployment, user acceptance testing, performance-metrics gathering, user training, or writing end-user docs.
+
+One task is one coherent change you can verify, not one file or one function. Detail bullets say what the design does not already make obvious. Do not copy design text or acceptance criteria into them; the `_Requirements:_` ids point there.
 
 ## Shape
 
