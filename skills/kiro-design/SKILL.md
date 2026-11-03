@@ -5,7 +5,7 @@ license: MIT
 compatibility: "Portable Agent Skills package. Writes Markdown. Diagrams follow the kiro-mermaid skill."
 metadata:
   author: kiro-sdd-skills
-  version: "1.0.0"
+  version: "1.1.0"
 ---
 
 # Kiro design
@@ -24,6 +24,12 @@ Use these `##` headings, in this order. Kiro's design phase expects them. Subsec
 6. Testing Strategy
 
 Details and what each section must decide are in `references/sections.md`. The skeleton is `assets/design.md`.
+
+## Decisions, not questions
+
+Overview ends with a `### Decisions` table: decision, why, and the alternative rejected. Record every call you made where the repo, a sibling repo, steering, or the user's goals gave a sensible default, and every assumption the design rests on. Ask the user only about the one or two calls a wrong guess would make costly (`kiro-sdd`, "Proportion and decisions").
+
+Keep the prose short. Use tables for tools, endpoints, settings, and error codes. Cite requirement ids instead of restating criteria. Diagrams carry the structure, so keep all the ones below that fit.
 
 ## Inputs
 

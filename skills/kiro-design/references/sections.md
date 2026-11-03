@@ -2,7 +2,7 @@
 
 ## Overview
 
-What the feature does and the shape of the solution in a few paragraphs. Name the guiding constraint (simplicity, latency, compatibility). List decisions with the alternative that was rejected, in a sentence each. Point at an ADR when the decision is reused elsewhere.
+What the feature does and the shape of the solution in one or two short paragraphs. Name the guiding constraint (simplicity, latency, compatibility). End with a `### Decisions` table (decision, why, rejected alternative) that also holds the assumptions you made instead of asking. Point at an ADR when the decision is reused elsewhere.
 
 ## Architecture
 
